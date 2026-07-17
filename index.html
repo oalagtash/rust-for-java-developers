@@ -409,6 +409,62 @@
   .nav-btn.primary:hover { background: var(--rust-dim); border-color: var(--rust-dim); }
   .nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
+  .search-box { position: relative; }
+  .search-box input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+  .search-box input:focus { border-color: var(--rust); }
+  .search-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 400px;
+    max-width: 92vw;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: none;
+    z-index: 200;
+  }
+  .search-results.open { display: block; }
+  .search-result {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: var(--sans);
+    color: var(--text);
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover, .search-result.sel { background: var(--surface2); }
+  .search-result .sr-title { font-size: 13px; font-weight: 600; }
+  .search-result .sr-cat { font-size: 11px; color: var(--muted); margin-left: 6px; font-weight: 400; }
+  .search-result .sr-snippet { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .search-results mark { background: none; color: var(--rust); font-weight: 600; }
+  .search-empty {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--sans);
+  }
+
   @media (max-width: 860px) {
     main { grid-template-columns: 1fr; }
     aside { display: none; }
@@ -416,6 +472,8 @@
     .code-compare { grid-template-columns: 1fr; }
     h1.lesson-title { font-size: 22px; }
     .map-table td:nth-child(1), .map-table td:nth-child(2) { white-space: normal; }
+    .progress-bar-wrap { display: none; }
+    .search-box input { width: 140px; }
   }
 </style>
 </head>
@@ -430,6 +488,10 @@
   <div class="progress-bar-wrap">
     <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     <span id="progText"></span>
+  </div>
+  <div class="search-box">
+    <input id="searchInput" type="search" placeholder="Search lessons…  /" autocomplete="off">
+    <div id="searchResults" class="search-results"></div>
   </div>
 </header>
 
@@ -2461,6 +2523,99 @@ function switchCategory(idx) {
   renderLesson();
   window.scrollTo(0, 0);
 }
+
+/* ──────────────────────── Search ──────────────────────── */
+function blockText(b) {
+  if (b.html) return b.html;
+  if (b.heading) return b.heading;
+  if (b.table) return b.table.headers.join(' ') + ' ' + b.table.rows.map(r => r.join(' ')).join(' ');
+  if (b.compare) return b.compare.javaLabel + ' ' + b.compare.java + ' ' + b.compare.rustLabel + ' ' + b.compare.rust;
+  if (b.callout) return b.callout.label + ' ' + b.callout.text;
+  return '';
+}
+function stripHtml(s) {
+  return s.replace(/<[^>]*>/g, ' ')
+          .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#96;/g, '`')
+          .replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+}
+const SEARCH_INDEX = CATEGORIES.flatMap((c, ci) =>
+  c.topics.map((t, ti) => ({
+    cat: ci, topic: ti, title: t.title, catName: c.name,
+    text: stripHtml(t.blocks.map(blockText).join(' ') + ' ' + (t.quiz ? t.quiz.q + ' ' + t.quiz.feedback : ''))
+  }))
+);
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function snippetAround(text, q) {
+  const i = text.toLowerCase().indexOf(q);
+  const start = Math.max(0, i - 40);
+  const end = Math.min(text.length, i + q.length + 60);
+  return (start > 0 ? '…' : '') +
+    escapeHtml(text.slice(start, i)) +
+    '<mark>' + escapeHtml(text.slice(i, i + q.length)) + '</mark>' +
+    escapeHtml(text.slice(i + q.length, end)) +
+    (end < text.length ? '…' : '');
+}
+let searchSel = -1;
+function runSearch() {
+  const box = document.getElementById('searchResults');
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  searchSel = -1;
+  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  const hits = SEARCH_INDEX
+    .map(e => ({ e, inTitle: e.title.toLowerCase().includes(q), inText: e.text.toLowerCase().includes(q) }))
+    .filter(h => h.inTitle || h.inText)
+    .sort((a, b) => (a.inTitle ? 0 : 1) - (b.inTitle ? 0 : 1))
+    .slice(0, 10);
+  box.innerHTML = hits.length
+    ? hits.map(h =>
+        '<button class="search-result" onclick="goToSearchHit(' + h.e.cat + ',' + h.e.topic + ')">' +
+          '<span class="sr-title">' + escapeHtml(h.e.title) +
+            '<span class="sr-cat">' + escapeHtml(h.e.catName) + '</span></span>' +
+          (h.inText ? '<div class="sr-snippet">' + snippetAround(h.e.text, q) + '</div>' : '') +
+        '</button>'
+      ).join('')
+    : '<div class="search-empty">No matches for “' + escapeHtml(q) + '”</div>';
+  box.classList.add('open');
+}
+function goToSearchHit(cat, topic) {
+  document.getElementById('searchResults').classList.remove('open');
+  document.getElementById('searchInput').blur();
+  currentCat = cat;
+  currentTopic = topic;
+  renderLesson();
+  window.scrollTo(0, 0);
+}
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', runSearch);
+searchInput.addEventListener('keydown', e => {
+  const results = document.querySelectorAll('.search-result');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    if (!results.length) return;
+    e.preventDefault();
+    searchSel = e.key === 'ArrowDown'
+      ? (searchSel + 1) % results.length
+      : (searchSel - 1 + results.length) % results.length;
+    results.forEach((r, i) => r.classList.toggle('sel', i === searchSel));
+    results[searchSel].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    if (results.length) results[Math.max(0, searchSel)].click();
+  } else if (e.key === 'Escape') {
+    document.getElementById('searchResults').classList.remove('open');
+    searchInput.blur();
+  }
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-box')) document.getElementById('searchResults').classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchInput &&
+      !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
 
 renderLesson();
 </script>

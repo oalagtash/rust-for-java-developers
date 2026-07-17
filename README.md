@@ -32,7 +32,7 @@ You're an experienced **Java developer** (or Kotlin/JVM developer) who wants to 
 | **Concurrency** | Fearless concurrency with `Send`/`Sync`, `Arc<Mutex<T>>` vs `synchronized`, channels vs `BlockingQueue`, async/await vs `CompletableFuture` & Java 21 virtual threads |
 | **Lifetimes** | Lifetime annotations explained as compile-time GC, elision rules, the `longest<'a>` pattern |
 
-Features: progress tracking, per-lesson quizzes, mapping tables, responsive layout, dark theme. Plain HTML/CSS/JS — no frameworks, works offline.
+Features: full-text search across all lessons (press `/`), progress tracking, per-lesson quizzes, mapping tables, responsive layout, dark theme. Plain HTML/CSS/JS — no frameworks, works offline.
 
 ## Run it
 
