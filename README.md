@@ -24,13 +24,13 @@ You're an experienced **Java developer** (or Kotlin/JVM developer) who wants to 
 
 | Chapter | Topics |
 |---|---|
+| **Ecosystem** | Cargo vs Maven/Gradle, crate equivalents (serde ≈ Jackson, tokio ≈ Netty, rayon ≈ parallel streams), built-in testing vs JUnit, doc tests, compile times & the dev loop (`cargo check`, workspaces), debugging & remote debugging (gdbserver vs JDWP) |
 | **Types & Data** | Primitives & integer overflow, `String` vs `&str` vs `StringBuilder`, collections (`ArrayList`→`Vec`, `HashMap` entry API vs `computeIfAbsent`), legacy synchronized types (`Vector`, `StringBuffer`, `Hashtable`), `Thread` / `AtomicInteger` / `ThreadLocal` |
 | **Ownership** | Moves & `Drop` vs garbage collection, borrowing rules (goodbye `ConcurrentModificationException`), `Copy`/`Clone` & pass-by-value semantics |
 | **Traits & Generics** | Traits vs interfaces (orphan rule, `#[derive]`), enums & pattern matching vs sealed interfaces + records, type erasure vs monomorphization, `dyn Trait` vs virtual dispatch |
 | **Error Handling** | `Result<T, E>` & the `?` operator vs checked exceptions, `panic!` vs `RuntimeException` |
 | **Concurrency** | Fearless concurrency with `Send`/`Sync`, `Arc<Mutex<T>>` vs `synchronized`, channels vs `BlockingQueue`, async/await vs `CompletableFuture` & Java 21 virtual threads |
 | **Lifetimes** | Lifetime annotations explained as compile-time GC, elision rules, the `longest<'a>` pattern |
-| **Ecosystem** | Cargo vs Maven/Gradle, crate equivalents (serde ≈ Jackson, tokio ≈ Netty, rayon ≈ parallel streams), built-in testing vs JUnit, doc tests, compile times & the dev loop (`cargo check`, workspaces), debugging & remote debugging (gdbserver vs JDWP) |
 
 Features: progress tracking, per-lesson quizzes, mapping tables, responsive layout, dark theme. Plain HTML/CSS/JS — no frameworks, works offline.
 

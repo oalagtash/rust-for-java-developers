@@ -456,7 +456,266 @@
 
 const CATEGORIES = [
 
-/* ═══════════════════════ 1. TYPES & DATA ═══════════════════════ */
+/* ═══════════════════════ 1. ECOSYSTEM ═══════════════════════ */
+{
+  name: "Ecosystem",
+  topics: [
+  {
+    title: "Cargo, Crates & Tooling",
+    eyebrow: "Ecosystem · 1",
+    blocks: [
+      { html: "<p>Coming from Maven/Gradle, <strong>Cargo</strong> will feel familiar — but more opinionated, and with far more built in. Packages are <strong>crates</strong>, the registry is crates.io, and building, testing, docs, formatting, and linting are all one tool.</p>" },
+      { compare: {
+        javaLabel: "Java toolchain",
+        java: `<span class="cm"># Build tools (pick one, configure lots)</span>
+mvn package
+gradle build
+
+<span class="cm"># Testing (JUnit dependency)</span>
+mvn test
+
+<span class="cm"># Formatting → Spotless/Checkstyle plugin</span>
+<span class="cm"># Linting    → SpotBugs/PMD/ErrorProne</span>
+<span class="cm"># Docs:</span>
+javadoc -d docs src/`,
+        rustLabel: "Cargo — one tool",
+        rust: `cargo build --release
+cargo test          <span class="cm"># built in</span>
+cargo fmt           <span class="cm"># built in</span>
+cargo clippy        <span class="cm"># built-in linter</span>
+cargo doc --open    <span class="cm"># built in</span>
+cargo add serde     <span class="cm"># edit manifest for you</span>
+cargo bench         <span class="cm"># benchmarks</span>`
+      }},
+      { heading: "The manifest" },
+      { compare: {
+        javaLabel: "Maven — pom.xml",
+        java: `&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+    &lt;version&gt;2.17.0&lt;/version&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;`,
+        rustLabel: "Cargo — Cargo.toml",
+        rust: `[package]
+name = <span class="st">"my-app"</span>
+edition = <span class="st">"2021"</span>
+
+[dependencies]
+serde = { version = <span class="st">"1"</span>, features = [<span class="st">"derive"</span>] }
+tokio = { version = <span class="st">"1"</span>, features = [<span class="st">"full"</span>] }
+<span class="cm"># Cargo.lock pins exact versions —</span>
+<span class="cm"># reproducible builds by default</span>`
+      }},
+      { callout: { type: "tip", label: "Crates to know", text: "<code>serde</code> ≈ Jackson · <code>tokio</code> + <code>reqwest</code> ≈ Netty + HttpClient · <code>rayon</code> ≈ parallel streams · <code>clap</code> ≈ picocli · <code>tracing</code> ≈ SLF4J/Logback · <code>sqlx</code>/<code>diesel</code> ≈ JDBC/JPA territory · <code>axum</code>/<code>actix-web</code> ≈ Spring WebMVC (minus the DI container)." } },
+      { callout: { type: "insight", label: "Key Insight", text: "Cargo workspaces ≈ Maven multi-module builds, with one lockfile and shared target dir. And <code>rustup</code> manages toolchain versions per project (via <code>rust-toolchain.toml</code>) — the role SDKMAN/jenv play for JDKs, but standard." } }
+    ],
+    quiz: {
+      q: "Which Cargo command runs your project's tests?",
+      opts: [
+        { text: "cargo run --test", correct: false },
+        { text: "cargo build test", correct: false },
+        { text: "cargo test", correct: true },
+        { text: "cargo check --tests", correct: false }
+      ],
+      feedback: "<code>cargo test</code> runs unit tests, integration tests, and doc tests — no external framework needed."
+    }
+  },
+  {
+    title: "Testing: JUnit vs. Built-in",
+    eyebrow: "Ecosystem · 2",
+    blocks: [
+      { html: "<p>Rust ships testing in the language and toolchain. The culture shock for Java developers: <strong>unit tests live in the same file</strong> as the code they test, in a <code>#[cfg(test)]</code> module that's compiled out of release builds — and code examples in your docs are executed as tests.</p>" },
+      { compare: {
+        javaLabel: "Java — JUnit 5",
+        java: `<span class="cm">// src/test/java/CalcTest.java —</span>
+<span class="cm">// separate tree, parallel packages</span>
+<span class="kw">import</span> org.junit.jupiter.api.<span class="ty">Test</span>;
+<span class="kw">import static</span> org.junit.jupiter.api
+    .<span class="ty">Assertions</span>.*;
+
+<span class="kw">class</span> <span class="ty">CalcTest</span> {
+    <span class="nm">@Test</span>
+    <span class="kw">void</span> <span class="fn">adds</span>() {
+        <span class="fn">assertEquals</span>(<span class="nm">4</span>, <span class="ty">Calc</span>.<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>));
+    }
+
+    <span class="nm">@Test</span>
+    <span class="kw">void</span> <span class="fn">rejectsNegatives</span>() {
+        <span class="fn">assertThrows</span>(
+            <span class="ty">IllegalArgumentException</span>.<span class="kw">class</span>,
+            () -> <span class="ty">Calc</span>.<span class="fn">sqrt</span>(-<span class="nm">1</span>));
+    }
+}`,
+        rustLabel: "Rust — same file, #[cfg(test)]",
+        rust: `<span class="cm">// src/calc.rs — code and tests together</span>
+<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
+
+#[cfg(test)]
+<span class="kw">mod</span> tests {
+    <span class="kw">use super</span>::*;   <span class="cm">// sees private items too!</span>
+
+    #[test]
+    <span class="kw">fn</span> <span class="fn">adds</span>() {
+        <span class="fn">assert_eq!</span>(<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>), <span class="nm">4</span>);
+    }
+
+    #[test]
+    #[should_panic(expected = <span class="st">"negative"</span>)]
+    <span class="kw">fn</span> <span class="fn">rejects_negatives</span>() {
+        <span class="fn">sqrt</span>(-<span class="nm">1.0</span>);
+    }
+}`
+      }},
+      { heading: "Doc tests: documentation that can't rot" },
+      { compare: {
+        javaLabel: "Java — Javadoc examples",
+        java: `<span class="cm">/**
+ * Adds two numbers.
+ *
+ * &lt;pre&gt;{@code
+ * int r = Calc.add(2, 2); // 4
+ * }&lt;/pre&gt;
+ */</span>
+<span class="cm">// Nothing compiles or runs this.</span>
+<span class="cm">// Refactor the API → example silently</span>
+<span class="cm">// becomes a lie.</span>`,
+        rustLabel: "Rust — examples run in CI",
+        rust: `<span class="cm">/// Adds two numbers.</span>
+<span class="cm">///</span>
+<span class="cm">/// # Examples</span>
+<span class="cm">/// &#96;&#96;&#96;</span>
+<span class="cm">/// assert_eq!(my_crate::add(2, 2), 4);</span>
+<span class="cm">/// &#96;&#96;&#96;</span>
+<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
+
+<span class="cm">// cargo test compiles and RUNS every</span>
+<span class="cm">// doc example. Out-of-date docs fail</span>
+<span class="cm">// the build.</span>`
+      }},
+      { callout: { type: "tip", label: "Integration tests", text: "The <code>tests/</code> directory at the crate root holds integration tests — each file compiles as a separate crate that uses your library only through its public API, like a Java test module depending on your published JAR. Tests run in parallel by default." } },
+      { callout: { type: "insight", label: "Key Insight", text: "In-file tests can exercise private functions directly (the <code>tests</code> module is inside the same scope) — the problem Java solves with package-private access and matching test package names disappears. And because <code>#[cfg(test)]</code> strips the module from normal builds, there's zero cost in production binaries." } }
+    ],
+    quiz: {
+      q: "Where do idiomatic Rust unit tests live?",
+      opts: [
+        { text: "In src/test/rust, mirroring the source tree", correct: false },
+        { text: "In the same file as the code, inside a #[cfg(test)] module", correct: true },
+        { text: "In a separate test crate published alongside", correct: false },
+        { text: "Rust has no unit tests, only integration tests", correct: false }
+      ],
+      feedback: "Same file, <code>#[cfg(test)] mod tests</code> — with access to private items and zero footprint in release builds. Integration tests (public-API only) go in <code>tests/</code>, and doc examples run as tests too."
+    }
+  },
+  {
+    title: "Compile Times & Debugging",
+    eyebrow: "Ecosystem · 3",
+    blocks: [
+      { html: "<p>Two criticisms you'll hear before switching: <em>“Rust compiles slowly once projects get big”</em> and <em>“debugging is hard.”</em> The first is <strong>real</strong> — compile time tops the annual Rust survey's pain list — but the daily workflow is built around avoiding full builds. The second is mostly a <strong>myth with a true core</strong>: breakpoint debugging works fine (including remotely); what you lose are JVM conveniences like HotSwap and JFR — and what you gain is that many bugs you'd step-debug in Java can't compile in Rust.</p>" },
+      { heading: "Why rustc is slower than javac" },
+      { compare: {
+        javaLabel: "Java — pay at runtime",
+        java: `<span class="cm">// javac: source → bytecode, ~1:1.</span>
+<span class="cm">// No inlining, no vectorization —</span>
+<span class="cm">// the JIT optimizes at runtime,</span>
+<span class="cm">// per hot path, while the app runs.</span>
+
+<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; xs;  <span class="cm">// erasure: one</span>
+<span class="ty">List</span>&lt;<span class="ty">String</span>&gt;  ys;  <span class="cm">// compiled List</span>
+
+<span class="cm">// The bill arrives later:</span>
+<span class="cm">// warmup, JIT threads, more RAM</span>`,
+        rustLabel: "Rust — pay at compile time",
+        rust: `<span class="cm">// rustc: source → LLVM IR → machine</span>
+<span class="cm">// code. ALL optimization happens now.</span>
+
+<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;    <span class="cm">// own machine code</span>
+<span class="ty">Vec</span>&lt;<span class="ty">String</span>&gt; <span class="cm">// own machine code</span>
+<span class="cm">// (monomorphization — see Generics)</span>
+
+<span class="cm">// + proc macros (serde derive) run</span>
+<span class="cm">//   code during compilation</span>
+<span class="cm">// Payoff: no warmup, no JIT, no GC,</span>
+<span class="cm">// small memory footprint</span>`
+      }},
+      { heading: "The daily loop is not cargo build" },
+      { table: {
+        headers: ["Java habit", "Rust equivalent", "Notes"],
+        rows: [
+          ["IDE red squiggles", "rust-analyzer", "Instant feedback in RustRover / VS Code — same experience"],
+          ["Quick javac rebuild", "cargo check", "Type + borrow checks, no machine code — seconds, your main loop"],
+          ["gradle build", "cargo build", "Debug profile: quicker compile, unoptimized binary"],
+          ["CI release artifact", "cargo build --release", "The slow one — full LLVM optimization"],
+          ["Gradle build cache", "sccache", "Shared compile cache across builds/machines"],
+          ["HotSwap / JRebel", "— none", "No hot code reload; bacon / cargo-watch re-check on save instead"]
+        ]
+      }},
+      { html: "<p>Big codebases manage the rest structurally: split into <strong>workspace crates</strong> (a crate is the unit of parallel + incremental compilation — Maven modules, but they actually change build speed), find bottlenecks with <code>cargo build --timings</code>, use a fast linker (lld is now the default on major Linux targets; mold is faster still), and cache with <code>sccache</code>. A warm incremental <code>cargo check</code> on a mid-size service is seconds; a clean release build is minutes — comparable to a clean Gradle build of a large multi-module project, but slower per line of code.</p>" },
+      { callout: { type: "danger", label: "Debug binaries are slow on purpose", text: "Unlike Java — where the JIT always kicks in — Rust's <code>cargo build</code> (dev profile) skips optimization entirely. Debug binaries can run 10–50× slower than release. Never benchmark or profile a debug build; that's <code>cargo build --release</code>." } },
+      { heading: "Debugging: it works — it's the native story" },
+      { compare: {
+        javaLabel: "Java — VM-assisted",
+        java: `<span class="cm">// IntelliJ + JDWP: breakpoints,</span>
+<span class="cm">// step, watch, evaluate — anywhere</span>
+
+<span class="cm">// VM introspection built in:</span>
+jstack &lt;pid&gt;     <span class="cm">// thread dump</span>
+jmap, JFR, VisualVM
+<span class="cm">// HotSwap: edit method body live</span>`,
+        rustLabel: "Rust — native debuggers",
+        rust: `<span class="cm">// Same breakpoint UX:</span>
+<span class="cm">// RustRover / CLion, VS Code + CodeLLDB</span>
+<span class="cm">// CLI, with Rust pretty-printers:</span>
+rust-lldb target/debug/my-app
+(lldb) b main.rs:42
+(lldb) run
+
+<span class="cm">// No VM → no jstack/JFR.</span>
+<span class="cm">// Use perf / Instruments / flamegraphs,</span>
+<span class="cm">// tokio-console for async tasks</span>`
+      }},
+      { heading: "Remote debugging: yes — via gdbserver, not JDWP" },
+      { compare: {
+        javaLabel: "Java — protocol ships in the JVM",
+        java: `java -agentlib:jdwp=
+  transport=dt_socket,server=y,
+  suspend=n,address=*:5005
+  -jar app.jar
+
+<span class="cm">// IDE → “Attach to remote JVM” :5005</span>
+<span class="cm">// Works on any JVM, any platform,</span>
+<span class="cm">// hot-swap included</span>`,
+        rustLabel: "Rust — run a debug server next to it",
+        rust: `<span class="cm"># on the remote box / container:</span>
+gdbserver :5005 ./my-app
+
+<span class="cm"># locally, same binary + symbols:</span>
+rust-gdb ./my-app
+(gdb) target remote prod-host:5005
+
+<span class="cm"># IDE: RustRover/CLion “Remote Debug”,</span>
+<span class="cm"># VS Code CodeLLDB remote attach.</span>
+<span class="cm"># Attach to a live process: lldb -p PID</span>`
+      }},
+      { callout: { type: "danger", label: "Release builds strip the story", text: "JDWP works the same on any build; native debugging needs <strong>debug symbols that match the binary</strong>. Release builds drop most of them by default — set <code>[profile.release] debug = true</code> (or <code>debug = \"line-tables-only\"</code>) to keep them, and expect stepping through optimized code to jump around as functions get inlined — the same weirdness as debugging JIT-compiled frames." } },
+      { callout: { type: "insight", label: "Why Rust devs reach for the debugger less", text: "The bugs that force a debugger session in Java are often compile errors in Rust: <code>NullPointerException</code> (<code>Option</code>), <code>ConcurrentModificationException</code> (borrow rules), data races (<code>Send</code>/<code>Sync</code>). For the rest: <code>RUST_BACKTRACE=1</code> gives full panic stack traces, <code>dbg!(expr)</code> prints file, line, and value — and returns the value, so you can wrap it inline. In production, Rust practice is observability-first (<code>tracing</code> + OpenTelemetry) — which is how modern Java shops treat prod too; nobody attaches JDWP to a live prod JVM if they can help it." } }
+    ],
+    quiz: {
+      q: "Your Rust service misbehaves on a remote server. What's the closest equivalent of attaching your IDE over JDWP?",
+      opts: [
+        { text: "There isn't one — compiled Rust binaries can't be debugged remotely", correct: false },
+        { text: "Run gdbserver (or lldb-server) on the host and attach rust-gdb or your IDE to it", correct: true },
+        { text: "Pass -agentlib:jdwp to the Rust binary", correct: false },
+        { text: "Recompile with cargo debug --remote", correct: false }
+      ],
+      feedback: "Remote debugging is the native-code story: <code>gdbserver :5005 ./my-app</code> on the target, then <code>target remote</code> from rust-gdb or an IDE Remote Debug config — with matching debug symbols. There's no JVM, so no built-in wire protocol and no HotSwap; production diagnosis usually leans on <code>tracing</code>/OpenTelemetry instead."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 2. TYPES & DATA ═══════════════════════ */
 {
   name: "Types & Data",
   topics: [
@@ -999,7 +1258,7 @@ COUNTER.<span class="fn">with</span>(|c| {
   ]
 },
 
-/* ═══════════════════════ 2. OWNERSHIP ═══════════════════════ */
+/* ═══════════════════════ 3. OWNERSHIP ═══════════════════════ */
 {
   name: "Ownership",
   topics: [
@@ -1226,7 +1485,7 @@ q.x = <span class="nm">99</span>;      <span class="cm">// p.x still 1</span>
   ]
 },
 
-/* ═══════════════════════ 3. TRAITS & GENERICS ═══════════════════════ */
+/* ═══════════════════════ 4. TRAITS & GENERICS ═══════════════════════ */
 {
   name: "Traits & Generics",
   topics: [
@@ -1522,7 +1781,7 @@ a.<span class="fn">getClass</span>() == b.<span class="fn">getClass</span>(); <s
   ]
 },
 
-/* ═══════════════════════ 4. ERROR HANDLING ═══════════════════════ */
+/* ═══════════════════════ 5. ERROR HANDLING ═══════════════════════ */
 {
   name: "Error Handling",
   topics: [
@@ -1708,7 +1967,7 @@ u.<span class="fn">expect</span>(<span class="st">"user must exist: \
   ]
 },
 
-/* ═══════════════════════ 5. CONCURRENCY ═══════════════════════ */
+/* ═══════════════════════ 6. CONCURRENCY ═══════════════════════ */
 {
   name: "Concurrency",
   topics: [
@@ -1949,7 +2208,7 @@ tokio::time::<span class="fn">timeout</span>(
   ]
 },
 
-/* ═══════════════════════ 6. LIFETIMES ═══════════════════════ */
+/* ═══════════════════════ 7. LIFETIMES ═══════════════════════ */
 {
   name: "Lifetimes",
   topics: [
@@ -2044,265 +2303,6 @@ tokio::time::<span class="fn">timeout</span>(
         { text: "To annotate async execution duration", correct: false }
       ],
       feedback: "Lifetimes prevent use-after-free at compile time by relating output references to input references. Java performs the equivalent check at runtime via the GC; Rust performs it once, statically, with zero runtime cost."
-    }
-  }
-  ]
-},
-
-/* ═══════════════════════ 7. ECOSYSTEM ═══════════════════════ */
-{
-  name: "Ecosystem",
-  topics: [
-  {
-    title: "Cargo, Crates & Tooling",
-    eyebrow: "Ecosystem · 1",
-    blocks: [
-      { html: "<p>Coming from Maven/Gradle, <strong>Cargo</strong> will feel familiar — but more opinionated, and with far more built in. Packages are <strong>crates</strong>, the registry is crates.io, and building, testing, docs, formatting, and linting are all one tool.</p>" },
-      { compare: {
-        javaLabel: "Java toolchain",
-        java: `<span class="cm"># Build tools (pick one, configure lots)</span>
-mvn package
-gradle build
-
-<span class="cm"># Testing (JUnit dependency)</span>
-mvn test
-
-<span class="cm"># Formatting → Spotless/Checkstyle plugin</span>
-<span class="cm"># Linting    → SpotBugs/PMD/ErrorProne</span>
-<span class="cm"># Docs:</span>
-javadoc -d docs src/`,
-        rustLabel: "Cargo — one tool",
-        rust: `cargo build --release
-cargo test          <span class="cm"># built in</span>
-cargo fmt           <span class="cm"># built in</span>
-cargo clippy        <span class="cm"># built-in linter</span>
-cargo doc --open    <span class="cm"># built in</span>
-cargo add serde     <span class="cm"># edit manifest for you</span>
-cargo bench         <span class="cm"># benchmarks</span>`
-      }},
-      { heading: "The manifest" },
-      { compare: {
-        javaLabel: "Maven — pom.xml",
-        java: `&lt;dependencies&gt;
-  &lt;dependency&gt;
-    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
-    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
-    &lt;version&gt;2.17.0&lt;/version&gt;
-  &lt;/dependency&gt;
-&lt;/dependencies&gt;`,
-        rustLabel: "Cargo — Cargo.toml",
-        rust: `[package]
-name = <span class="st">"my-app"</span>
-edition = <span class="st">"2021"</span>
-
-[dependencies]
-serde = { version = <span class="st">"1"</span>, features = [<span class="st">"derive"</span>] }
-tokio = { version = <span class="st">"1"</span>, features = [<span class="st">"full"</span>] }
-<span class="cm"># Cargo.lock pins exact versions —</span>
-<span class="cm"># reproducible builds by default</span>`
-      }},
-      { callout: { type: "tip", label: "Crates to know", text: "<code>serde</code> ≈ Jackson · <code>tokio</code> + <code>reqwest</code> ≈ Netty + HttpClient · <code>rayon</code> ≈ parallel streams · <code>clap</code> ≈ picocli · <code>tracing</code> ≈ SLF4J/Logback · <code>sqlx</code>/<code>diesel</code> ≈ JDBC/JPA territory · <code>axum</code>/<code>actix-web</code> ≈ Spring WebMVC (minus the DI container)." } },
-      { callout: { type: "insight", label: "Key Insight", text: "Cargo workspaces ≈ Maven multi-module builds, with one lockfile and shared target dir. And <code>rustup</code> manages toolchain versions per project (via <code>rust-toolchain.toml</code>) — the role SDKMAN/jenv play for JDKs, but standard." } }
-    ],
-    quiz: {
-      q: "Which Cargo command runs your project's tests?",
-      opts: [
-        { text: "cargo run --test", correct: false },
-        { text: "cargo build test", correct: false },
-        { text: "cargo test", correct: true },
-        { text: "cargo check --tests", correct: false }
-      ],
-      feedback: "<code>cargo test</code> runs unit tests, integration tests, and doc tests — no external framework needed."
-    }
-  },
-  {
-    title: "Testing: JUnit vs. Built-in",
-    eyebrow: "Ecosystem · 2",
-    blocks: [
-      { html: "<p>Rust ships testing in the language and toolchain. The culture shock for Java developers: <strong>unit tests live in the same file</strong> as the code they test, in a <code>#[cfg(test)]</code> module that's compiled out of release builds — and code examples in your docs are executed as tests.</p>" },
-      { compare: {
-        javaLabel: "Java — JUnit 5",
-        java: `<span class="cm">// src/test/java/CalcTest.java —</span>
-<span class="cm">// separate tree, parallel packages</span>
-<span class="kw">import</span> org.junit.jupiter.api.<span class="ty">Test</span>;
-<span class="kw">import static</span> org.junit.jupiter.api
-    .<span class="ty">Assertions</span>.*;
-
-<span class="kw">class</span> <span class="ty">CalcTest</span> {
-    <span class="nm">@Test</span>
-    <span class="kw">void</span> <span class="fn">adds</span>() {
-        <span class="fn">assertEquals</span>(<span class="nm">4</span>, <span class="ty">Calc</span>.<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>));
-    }
-
-    <span class="nm">@Test</span>
-    <span class="kw">void</span> <span class="fn">rejectsNegatives</span>() {
-        <span class="fn">assertThrows</span>(
-            <span class="ty">IllegalArgumentException</span>.<span class="kw">class</span>,
-            () -> <span class="ty">Calc</span>.<span class="fn">sqrt</span>(-<span class="nm">1</span>));
-    }
-}`,
-        rustLabel: "Rust — same file, #[cfg(test)]",
-        rust: `<span class="cm">// src/calc.rs — code and tests together</span>
-<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
-
-#[cfg(test)]
-<span class="kw">mod</span> tests {
-    <span class="kw">use super</span>::*;   <span class="cm">// sees private items too!</span>
-
-    #[test]
-    <span class="kw">fn</span> <span class="fn">adds</span>() {
-        <span class="fn">assert_eq!</span>(<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>), <span class="nm">4</span>);
-    }
-
-    #[test]
-    #[should_panic(expected = <span class="st">"negative"</span>)]
-    <span class="kw">fn</span> <span class="fn">rejects_negatives</span>() {
-        <span class="fn">sqrt</span>(-<span class="nm">1.0</span>);
-    }
-}`
-      }},
-      { heading: "Doc tests: documentation that can't rot" },
-      { compare: {
-        javaLabel: "Java — Javadoc examples",
-        java: `<span class="cm">/**
- * Adds two numbers.
- *
- * &lt;pre&gt;{@code
- * int r = Calc.add(2, 2); // 4
- * }&lt;/pre&gt;
- */</span>
-<span class="cm">// Nothing compiles or runs this.</span>
-<span class="cm">// Refactor the API → example silently</span>
-<span class="cm">// becomes a lie.</span>`,
-        rustLabel: "Rust — examples run in CI",
-        rust: `<span class="cm">/// Adds two numbers.</span>
-<span class="cm">///</span>
-<span class="cm">/// # Examples</span>
-<span class="cm">/// &#96;&#96;&#96;</span>
-<span class="cm">/// assert_eq!(my_crate::add(2, 2), 4);</span>
-<span class="cm">/// &#96;&#96;&#96;</span>
-<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
-
-<span class="cm">// cargo test compiles and RUNS every</span>
-<span class="cm">// doc example. Out-of-date docs fail</span>
-<span class="cm">// the build.</span>`
-      }},
-      { callout: { type: "tip", label: "Integration tests", text: "The <code>tests/</code> directory at the crate root holds integration tests — each file compiles as a separate crate that uses your library only through its public API, like a Java test module depending on your published JAR. Tests run in parallel by default." } },
-      { callout: { type: "insight", label: "Key Insight", text: "In-file tests can exercise private functions directly (the <code>tests</code> module is inside the same scope) — the problem Java solves with package-private access and matching test package names disappears. And because <code>#[cfg(test)]</code> strips the module from normal builds, there's zero cost in production binaries." } }
-    ],
-    quiz: {
-      q: "Where do idiomatic Rust unit tests live?",
-      opts: [
-        { text: "In src/test/rust, mirroring the source tree", correct: false },
-        { text: "In the same file as the code, inside a #[cfg(test)] module", correct: true },
-        { text: "In a separate test crate published alongside", correct: false },
-        { text: "Rust has no unit tests, only integration tests", correct: false }
-      ],
-      feedback: "Same file, <code>#[cfg(test)] mod tests</code> — with access to private items and zero footprint in release builds. Integration tests (public-API only) go in <code>tests/</code>, and doc examples run as tests too."
-    }
-  },
-  {
-    title: "Compile Times & Debugging",
-    eyebrow: "Ecosystem · 3",
-    blocks: [
-      { html: "<p>Two criticisms you'll hear before switching: <em>“Rust compiles slowly once projects get big”</em> and <em>“debugging is hard.”</em> The first is <strong>real</strong> — compile time tops the annual Rust survey's pain list — but the daily workflow is built around avoiding full builds. The second is mostly a <strong>myth with a true core</strong>: breakpoint debugging works fine (including remotely); what you lose are JVM conveniences like HotSwap and JFR — and what you gain is that many bugs you'd step-debug in Java can't compile in Rust.</p>" },
-      { heading: "Why rustc is slower than javac" },
-      { compare: {
-        javaLabel: "Java — pay at runtime",
-        java: `<span class="cm">// javac: source → bytecode, ~1:1.</span>
-<span class="cm">// No inlining, no vectorization —</span>
-<span class="cm">// the JIT optimizes at runtime,</span>
-<span class="cm">// per hot path, while the app runs.</span>
-
-<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; xs;  <span class="cm">// erasure: one</span>
-<span class="ty">List</span>&lt;<span class="ty">String</span>&gt;  ys;  <span class="cm">// compiled List</span>
-
-<span class="cm">// The bill arrives later:</span>
-<span class="cm">// warmup, JIT threads, more RAM</span>`,
-        rustLabel: "Rust — pay at compile time",
-        rust: `<span class="cm">// rustc: source → LLVM IR → machine</span>
-<span class="cm">// code. ALL optimization happens now.</span>
-
-<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;    <span class="cm">// own machine code</span>
-<span class="ty">Vec</span>&lt;<span class="ty">String</span>&gt; <span class="cm">// own machine code</span>
-<span class="cm">// (monomorphization — see Generics)</span>
-
-<span class="cm">// + proc macros (serde derive) run</span>
-<span class="cm">//   code during compilation</span>
-<span class="cm">// Payoff: no warmup, no JIT, no GC,</span>
-<span class="cm">// small memory footprint</span>`
-      }},
-      { heading: "The daily loop is not cargo build" },
-      { table: {
-        headers: ["Java habit", "Rust equivalent", "Notes"],
-        rows: [
-          ["IDE red squiggles", "rust-analyzer", "Instant feedback in RustRover / VS Code — same experience"],
-          ["Quick javac rebuild", "cargo check", "Type + borrow checks, no machine code — seconds, your main loop"],
-          ["gradle build", "cargo build", "Debug profile: quicker compile, unoptimized binary"],
-          ["CI release artifact", "cargo build --release", "The slow one — full LLVM optimization"],
-          ["Gradle build cache", "sccache", "Shared compile cache across builds/machines"],
-          ["HotSwap / JRebel", "— none", "No hot code reload; bacon / cargo-watch re-check on save instead"]
-        ]
-      }},
-      { html: "<p>Big codebases manage the rest structurally: split into <strong>workspace crates</strong> (a crate is the unit of parallel + incremental compilation — Maven modules, but they actually change build speed), find bottlenecks with <code>cargo build --timings</code>, use a fast linker (lld is now the default on major Linux targets; mold is faster still), and cache with <code>sccache</code>. A warm incremental <code>cargo check</code> on a mid-size service is seconds; a clean release build is minutes — comparable to a clean Gradle build of a large multi-module project, but slower per line of code.</p>" },
-      { callout: { type: "danger", label: "Debug binaries are slow on purpose", text: "Unlike Java — where the JIT always kicks in — Rust's <code>cargo build</code> (dev profile) skips optimization entirely. Debug binaries can run 10–50× slower than release. Never benchmark or profile a debug build; that's <code>cargo build --release</code>." } },
-      { heading: "Debugging: it works — it's the native story" },
-      { compare: {
-        javaLabel: "Java — VM-assisted",
-        java: `<span class="cm">// IntelliJ + JDWP: breakpoints,</span>
-<span class="cm">// step, watch, evaluate — anywhere</span>
-
-<span class="cm">// VM introspection built in:</span>
-jstack &lt;pid&gt;     <span class="cm">// thread dump</span>
-jmap, JFR, VisualVM
-<span class="cm">// HotSwap: edit method body live</span>`,
-        rustLabel: "Rust — native debuggers",
-        rust: `<span class="cm">// Same breakpoint UX:</span>
-<span class="cm">// RustRover / CLion, VS Code + CodeLLDB</span>
-<span class="cm">// CLI, with Rust pretty-printers:</span>
-rust-lldb target/debug/my-app
-(lldb) b main.rs:42
-(lldb) run
-
-<span class="cm">// No VM → no jstack/JFR.</span>
-<span class="cm">// Use perf / Instruments / flamegraphs,</span>
-<span class="cm">// tokio-console for async tasks</span>`
-      }},
-      { heading: "Remote debugging: yes — via gdbserver, not JDWP" },
-      { compare: {
-        javaLabel: "Java — protocol ships in the JVM",
-        java: `java -agentlib:jdwp=
-  transport=dt_socket,server=y,
-  suspend=n,address=*:5005
-  -jar app.jar
-
-<span class="cm">// IDE → “Attach to remote JVM” :5005</span>
-<span class="cm">// Works on any JVM, any platform,</span>
-<span class="cm">// hot-swap included</span>`,
-        rustLabel: "Rust — run a debug server next to it",
-        rust: `<span class="cm"># on the remote box / container:</span>
-gdbserver :5005 ./my-app
-
-<span class="cm"># locally, same binary + symbols:</span>
-rust-gdb ./my-app
-(gdb) target remote prod-host:5005
-
-<span class="cm"># IDE: RustRover/CLion “Remote Debug”,</span>
-<span class="cm"># VS Code CodeLLDB remote attach.</span>
-<span class="cm"># Attach to a live process: lldb -p PID</span>`
-      }},
-      { callout: { type: "danger", label: "Release builds strip the story", text: "JDWP works the same on any build; native debugging needs <strong>debug symbols that match the binary</strong>. Release builds drop most of them by default — set <code>[profile.release] debug = true</code> (or <code>debug = \"line-tables-only\"</code>) to keep them, and expect stepping through optimized code to jump around as functions get inlined — the same weirdness as debugging JIT-compiled frames." } },
-      { callout: { type: "insight", label: "Why Rust devs reach for the debugger less", text: "The bugs that force a debugger session in Java are often compile errors in Rust: <code>NullPointerException</code> (<code>Option</code>), <code>ConcurrentModificationException</code> (borrow rules), data races (<code>Send</code>/<code>Sync</code>). For the rest: <code>RUST_BACKTRACE=1</code> gives full panic stack traces, <code>dbg!(expr)</code> prints file, line, and value — and returns the value, so you can wrap it inline. In production, Rust practice is observability-first (<code>tracing</code> + OpenTelemetry) — which is how modern Java shops treat prod too; nobody attaches JDWP to a live prod JVM if they can help it." } }
-    ],
-    quiz: {
-      q: "Your Rust service misbehaves on a remote server. What's the closest equivalent of attaching your IDE over JDWP?",
-      opts: [
-        { text: "There isn't one — compiled Rust binaries can't be debugged remotely", correct: false },
-        { text: "Run gdbserver (or lldb-server) on the host and attach rust-gdb or your IDE to it", correct: true },
-        { text: "Pass -agentlib:jdwp to the Rust binary", correct: false },
-        { text: "Recompile with cargo debug --remote", correct: false }
-      ],
-      feedback: "Remote debugging is the native-code story: <code>gdbserver :5005 ./my-app</code> on the target, then <code>target remote</code> from rust-gdb or an IDE Remote Debug config — with matching debug symbols. There's no JVM, so no built-in wire protocol and no HotSwap; production diagnosis usually leans on <code>tracing</code>/OpenTelemetry instead."
     }
   }
   ]
