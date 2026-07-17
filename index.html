@@ -497,7 +497,8 @@ const CATEGORIES = [
         rustLabel: "Rust",
         rust: `<span class="kw">let</span> a = <span class="nm">42</span>;              <span class="cm">// i32 inferred</span>
 <span class="kw">let</span> big = <span class="nm">1_000_000i64</span>;  <span class="cm">// type suffix</span>
-<span class="kw">let</span> pi: <span class="ty">f64</span> = <span class="nm">3.14</span>;
+<span class="kw">let</span> pi = <span class="nm">3.14</span>;            <span class="cm">// f64 inferred</span>
+<span class="kw">let</span> pi32: <span class="ty">f32</span> = <span class="nm">3.14</span>;    <span class="cm">// same literal → f32</span>
 <span class="kw">let</span> b: <span class="ty">u8</span> = <span class="nm">255</span>;
 
 <span class="cm">// NO implicit conversion, ever.</span>
@@ -505,6 +506,7 @@ const CATEGORIES = [
 <span class="kw">let</span> l: <span class="ty">i64</span> = a <span class="kw">as</span> <span class="ty">i64</span>;
 <span class="kw">let</span> safe: <span class="ty">i64</span> = <span class="ty">i64</span>::<span class="fn">from</span>(a); <span class="cm">// lossless</span>`
       }},
+      { callout: { type: "insight", label: "Will let pi = 3.14 lose the .14?", text: "No. A literal with a decimal point is a <em>float literal</em> — it can never be inferred as an integer, so nothing is truncated. Inference only chooses <em>which</em> float type: <code>f64</code> by default (Java's <code>double</code>), or <code>f32</code> when the context demands it (<code>let x: f32 = 3.14;</code>, or the suffix <code>3.14f32</code> — Java's <code>3.14f</code>). The annotation in <code>let pi: f64 = 3.14;</code> is optional documentation, not protection. Rust is stricter than Java in the other direction too: <code>let y: f64 = 1;</code> is a compile error — Rust won't even do the implicit <em>widening</em> Java allows with <code>double d = 1;</code>. Inference picks types; it never changes values." } },
       { heading: "Overflow: silent vs. loud" },
       { compare: {
         javaLabel: "Java — wraps silently, always",
