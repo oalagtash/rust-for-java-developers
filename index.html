@@ -184,6 +184,7 @@
     padding: 40px 48px;
     overflow-y: auto;
     max-width: 960px;
+    min-width: 0;
   }
 
   .lesson-eyebrow {
@@ -243,6 +244,7 @@
     border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    min-width: 0;
   }
   .code-panel-header {
     display: flex;
@@ -409,37 +411,65 @@
   .nav-btn.primary:hover { background: var(--rust-dim); border-color: var(--rust-dim); }
   .nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
 
-  .search-box { position: relative; }
-  .search-box input {
+  .search-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    color: var(--text);
+    color: var(--muted);
     font-family: var(--sans);
     font-size: 13px;
-    padding: 8px 12px;
+    padding: 8px 14px;
     border-radius: 5px;
-    width: 220px;
-    outline: none;
-    transition: border-color 0.15s;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
   }
-  .search-box input::placeholder { color: var(--muted); }
-  .search-box input:focus { border-color: var(--rust); }
-  .search-results {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    width: 400px;
-    max-width: 92vw;
-    max-height: 60vh;
-    overflow-y: auto;
+  .search-trigger:hover { border-color: var(--rust); color: var(--text); }
+  .search-trigger kbd {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    background: var(--bg);
+  }
+  .search-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 12vh 16px 0;
+    z-index: 300;
+  }
+  .search-overlay.open { display: flex; }
+  .search-panel {
+    width: 560px;
+    max-width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-    display: none;
-    z-index: 200;
+    border-radius: 8px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
   }
-  .search-results.open { display: block; }
+  .search-panel input {
+    width: 100%;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+  }
+  .search-panel input::placeholder { color: var(--muted); }
+  .search-results {
+    max-height: 55vh;
+    overflow-y: auto;
+  }
   .search-result {
     display: block;
     width: 100%;
@@ -472,8 +502,10 @@
     .code-compare { grid-template-columns: 1fr; }
     h1.lesson-title { font-size: 22px; }
     .map-table td:nth-child(1), .map-table td:nth-child(2) { white-space: normal; }
-    .progress-bar-wrap { display: none; }
-    .search-box input { width: 140px; }
+    .search-trigger .st-label, .search-trigger kbd { display: none; }
+    header { padding: 14px 16px; gap: 10px; }
+    .logo span:not(.logo-badge) { display: none; }
+    .progress-track { width: 80px; }
   }
 </style>
 </head>
@@ -489,11 +521,19 @@
     <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
     <span id="progText"></span>
   </div>
-  <div class="search-box">
-    <input id="searchInput" type="search" placeholder="Search lessons…  /" autocomplete="off">
+  <button class="search-trigger" onclick="openSearch()" aria-label="Search lessons">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <span class="st-label">Search</span>
+    <kbd>/</kbd>
+  </button>
+</header>
+
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-panel">
+    <input id="searchInput" type="search" placeholder="Search lessons — ownership, gdbserver, HashMap…" autocomplete="off">
     <div id="searchResults" class="search-results"></div>
   </div>
-</header>
+</div>
 
 <nav id="topNav"></nav>
 
@@ -2562,7 +2602,7 @@ function runSearch() {
   const box = document.getElementById('searchResults');
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
   searchSel = -1;
-  if (q.length < 2) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  if (q.length < 2) { box.innerHTML = ''; return; }
   const hits = SEARCH_INDEX
     .map(e => ({ e, inTitle: e.title.toLowerCase().includes(q), inText: e.text.toLowerCase().includes(q) }))
     .filter(h => h.inTitle || h.inText)
@@ -2577,11 +2617,19 @@ function runSearch() {
         '</button>'
       ).join('')
     : '<div class="search-empty">No matches for “' + escapeHtml(q) + '”</div>';
-  box.classList.add('open');
+}
+function openSearch() {
+  document.getElementById('searchOverlay').classList.add('open');
+  const input = document.getElementById('searchInput');
+  input.focus();
+  input.select();
+}
+function closeSearch() {
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.getElementById('searchInput').blur();
 }
 function goToSearchHit(cat, topic) {
-  document.getElementById('searchResults').classList.remove('open');
-  document.getElementById('searchInput').blur();
+  closeSearch();
   currentCat = cat;
   currentTopic = topic;
   renderLesson();
@@ -2602,18 +2650,17 @@ searchInput.addEventListener('keydown', e => {
   } else if (e.key === 'Enter') {
     if (results.length) results[Math.max(0, searchSel)].click();
   } else if (e.key === 'Escape') {
-    document.getElementById('searchResults').classList.remove('open');
-    searchInput.blur();
+    closeSearch();
   }
 });
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-box')) document.getElementById('searchResults').classList.remove('open');
+document.getElementById('searchOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSearch();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === '/' && document.activeElement !== searchInput &&
-      !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+  const typing = /INPUT|TEXTAREA/.test(document.activeElement.tagName);
+  if ((e.key === '/' && !typing) || ((e.metaKey || e.ctrlKey) && e.key === 'k')) {
     e.preventDefault();
-    searchInput.focus();
+    openSearch();
   }
 });
 
