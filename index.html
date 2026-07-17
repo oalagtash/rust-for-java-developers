@@ -1,0 +1,2362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rust for Java Experts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;700&display=swap');
+
+  :root {
+    --rust:    #CE422B;
+    --rust-dim:#8B2E1E;
+    --java:    #5382A1;
+    --java-dim:#2E5A7E;
+    --bg:      #0F0F0F;
+    --surface: #181818;
+    --surface2:#222222;
+    --border:  #2E2E2E;
+    --text:    #E8E4DC;
+    --muted:   #888;
+    --good:    #4CAF50;
+    --warn:    #FFC107;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.05em;
+  }
+  .logo-badge {
+    background: var(--rust);
+    color: #fff;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 2px;
+  }
+  .logo-sep { color: var(--muted); }
+
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .progress-track {
+    width: 160px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--rust);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Nav tabs ── */
+  nav {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 32px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+
+  nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 14px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+  }
+
+  /* ── Layout ── */
+  main {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── Sidebar ── */
+  aside {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px 0;
+    overflow-y: auto;
+    position: sticky;
+    top: 109px;
+    height: calc(100vh - 109px);
+  }
+
+  .aside-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 20px 10px;
+  }
+
+  .topic-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border-left: 3px solid transparent;
+    line-height: 1.4;
+  }
+  .topic-btn:hover { background: var(--surface2); color: var(--text); }
+  .topic-btn.active {
+    color: var(--rust);
+    border-left-color: var(--rust);
+    background: var(--surface2);
+  }
+  .topic-btn .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .topic-btn.done .dot { background: var(--good); }
+  .topic-btn.active .dot { background: var(--rust); }
+
+  /* ── Content ── */
+  .content {
+    padding: 40px 48px;
+    overflow-y: auto;
+    max-width: 960px;
+  }
+
+  .lesson-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--rust);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: var(--mono);
+  }
+
+  h1.lesson-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+  }
+
+  .lesson-body p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #C8C4BC;
+    margin-bottom: 16px;
+  }
+
+  .lesson-body strong { color: var(--text); font-weight: 500; }
+
+  h3.block-heading {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 32px 0 4px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h3.block-heading::before {
+    content: "";
+    width: 18px;
+    height: 2px;
+    background: var(--rust);
+    flex-shrink: 0;
+  }
+
+  /* ── Side-by-side code ── */
+  .code-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+  .code-panel {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .code-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-panel-header.java { background: #0F1C2E; color: var(--java); }
+  .code-panel-header.rust { background: #1A0B08; color: var(--rust); }
+
+  pre {
+    background: var(--surface2);
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    overflow-x: auto;
+    tab-size: 2;
+    flex: 1;
+  }
+
+  code {
+    font-family: var(--mono);
+    background: var(--surface2);
+    color: #E8834D;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  .kw { color: #CC7EE8; }
+  .ty { color: #5EB3D3; }
+  .fn { color: #E8C567; }
+  .st { color: #9ECE6A; }
+  .cm { color: #606060; }
+  .lt { color: #FF9E64; }
+  .nm { color: #FF9E64; }
+  .op { color: #89DDFF; }
+
+  /* ── Mapping table ── */
+  .map-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .map-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .map-table th:nth-child(1) { color: var(--java); }
+  .map-table th:nth-child(2) { color: var(--rust); }
+  .map-table th:nth-child(3) { color: var(--muted); }
+  .map-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.55;
+  }
+  .map-table tr:last-child td { border-bottom: none; }
+  .map-table td:nth-child(1), .map-table td:nth-child(2) { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+  .map-table td:nth-child(1) { color: #A8C8E0; }
+  .map-table td:nth-child(2) { color: #E8A896; }
+  .map-table td:nth-child(3) { color: var(--muted); font-size: 12.5px; }
+  .map-table tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-left: 3px solid;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .callout.concept { background: #0D1A24; border-color: var(--java); color: #A8C8E0; }
+  .callout.insight { background: #1A0E00; border-color: var(--rust); color: #E0C8A0; }
+  .callout.danger  { background: #1A0808; border-color: #E53935; color: #F4AAAA; }
+  .callout.tip     { background: #0A1A0A; border-color: var(--good); color: #A8D8A8; }
+  .callout strong {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.8;
+  }
+  .callout code { background: rgba(0,0,0,0.35); }
+
+  /* ── Quiz ── */
+  .quiz {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 28px 0;
+  }
+  .quiz-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--rust);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .quiz-q { font-size: 15px; font-weight: 500; margin-bottom: 16px; line-height: 1.5; }
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+  .quiz-opt {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: var(--sans);
+    color: var(--text);
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--rust); }
+  .quiz-opt.correct { border-color: var(--good); background: #0A1A0A; color: #9ECE6A; }
+  .quiz-opt.wrong   { border-color: #E53935; background: #1A0808; color: #F4AAAA; }
+  .quiz-opt:disabled { cursor: default; }
+  .quiz-feedback { margin-top: 14px; font-size: 13px; line-height: 1.6; color: var(--muted); display: none; }
+  .quiz-feedback.show { display: block; }
+
+  /* ── Nav buttons ── */
+  .lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .nav-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .nav-btn:hover { border-color: var(--rust); }
+  .nav-btn.primary { background: var(--rust); border-color: var(--rust); font-weight: 600; }
+  .nav-btn.primary:hover { background: var(--rust-dim); border-color: var(--rust-dim); }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+  @media (max-width: 860px) {
+    main { grid-template-columns: 1fr; }
+    aside { display: none; }
+    .content { padding: 24px 20px; }
+    .code-compare { grid-template-columns: 1fr; }
+    h1.lesson-title { font-size: 22px; }
+    .map-table td:nth-child(1), .map-table td:nth-child(2) { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">RUST</span>
+    <span class="logo-sep">for</span>
+    <span>Java Experts</span>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <span id="progText"></span>
+  </div>
+</header>
+
+<nav id="topNav"></nav>
+
+<main>
+<aside>
+  <div class="aside-label">Topics</div>
+  <div id="sidebarTopics"></div>
+</aside>
+
+<div class="content" id="contentPane"></div>
+</main>
+
+<script>
+/* ────────────────────────────────────────────────────────────
+   Block types:
+   { html }                          – prose paragraph(s)
+   { heading }                       – small section heading
+   { table: { headers, rows } }      – Java → Rust mapping table
+   { compare: { javaLabel, java, rustLabel, rust } }
+   { callout: { type, label, text } }
+──────────────────────────────────────────────────────────── */
+
+const CATEGORIES = [
+
+/* ═══════════════════════ 1. TYPES & DATA ═══════════════════════ */
+{
+  name: "Types & Data",
+  topics: [
+
+  /* ---- 1.1 Primitives ---- */
+  {
+    title: "Primitives & Numbers",
+    eyebrow: "Types & Data · 1",
+    blocks: [
+      { html: "<p>Java has 8 primitives plus their boxed wrappers (<code>int</code> / <code>Integer</code>). Rust has <strong>no boxing distinction</strong> — every numeric type is a first-class value that works in generics and collections directly. Rust also adds something Java famously lacks: <strong>unsigned integers</strong>.</p>" },
+      { table: {
+        headers: ["Java", "Rust", "Notes"],
+        rows: [
+          ["byte", "i8", "Rust also has u8 (0–255) — the natural type for raw bytes"],
+          ["short", "i16", "u16 for unsigned"],
+          ["int / Integer", "i32", "Default integer type; no boxed/unboxed split"],
+          ["long / Long", "i64", "Also i128 / u128 — no BigInteger needed until huge values"],
+          ["float", "f32", "Same IEEE 754"],
+          ["double", "f64", "Default float type"],
+          ["boolean", "bool", "One byte, true/false"],
+          ["char", "char", "⚠ Java: 16-bit UTF-16 unit. Rust: 32-bit Unicode scalar — '🦀' is one char"],
+          ["— (none)", "usize / isize", "Pointer-sized; all indexing uses usize"],
+          ["— (none)", "u8…u128", "Real unsigned arithmetic, not Integer.toUnsignedString tricks"]
+        ]
+      }},
+      { heading: "Declarations & literals" },
+      { compare: {
+        javaLabel: "Java",
+        java: `<span class="kw">int</span> a = <span class="nm">42</span>;
+<span class="kw">long</span> big = <span class="nm">1_000_000L</span>;
+<span class="kw">double</span> pi = <span class="nm">3.14</span>;
+<span class="kw">var</span> inferred = <span class="nm">42</span>;      <span class="cm">// int</span>
+
+<span class="cm">// Cast: implicit widening,</span>
+<span class="cm">// explicit narrowing</span>
+<span class="kw">long</span> l = a;            <span class="cm">// ok</span>
+<span class="kw">int</span> back = (<span class="kw">int</span>) l;    <span class="cm">// cast</span>`,
+        rustLabel: "Rust",
+        rust: `<span class="kw">let</span> a = <span class="nm">42</span>;              <span class="cm">// i32 inferred</span>
+<span class="kw">let</span> big = <span class="nm">1_000_000i64</span>;  <span class="cm">// type suffix</span>
+<span class="kw">let</span> pi: <span class="ty">f64</span> = <span class="nm">3.14</span>;
+<span class="kw">let</span> b: <span class="ty">u8</span> = <span class="nm">255</span>;
+
+<span class="cm">// NO implicit conversion, ever.</span>
+<span class="cm">// Even i32 → i64 must be explicit:</span>
+<span class="kw">let</span> l: <span class="ty">i64</span> = a <span class="kw">as</span> <span class="ty">i64</span>;
+<span class="kw">let</span> safe: <span class="ty">i64</span> = <span class="ty">i64</span>::<span class="fn">from</span>(a); <span class="cm">// lossless</span>`
+      }},
+      { heading: "Overflow: silent vs. loud" },
+      { compare: {
+        javaLabel: "Java — wraps silently, always",
+        java: `<span class="kw">int</span> max = <span class="ty">Integer</span>.MAX_VALUE;
+<span class="kw">int</span> boom = max + <span class="nm">1</span>;
+<span class="cm">// boom == -2147483648</span>
+<span class="cm">// No warning. No error. Ever.</span>
+
+<span class="cm">// Opt-in safety:</span>
+<span class="ty">Math</span>.<span class="fn">addExact</span>(max, <span class="nm">1</span>);
+<span class="cm">// throws ArithmeticException</span>`,
+        rustLabel: "Rust — panics in debug, explicit otherwise",
+        rust: `<span class="kw">let</span> max = <span class="ty">i32</span>::MAX;
+<span class="kw">let</span> boom = max + <span class="nm">1</span>;
+<span class="cm">// DEBUG build: panics immediately</span>
+<span class="cm">// RELEASE build: wraps (like Java)</span>
+
+<span class="cm">// Say what you actually mean:</span>
+max.<span class="fn">checked_add</span>(<span class="nm">1</span>);    <span class="cm">// → None</span>
+max.<span class="fn">wrapping_add</span>(<span class="nm">1</span>);   <span class="cm">// → i32::MIN</span>
+max.<span class="fn">saturating_add</span>(<span class="nm">1</span>); <span class="cm">// → i32::MAX</span>`
+      }},
+      { heading: "The boxing problem that doesn't exist" },
+      { compare: {
+        javaLabel: "Java — the IntegerCache trap",
+        java: `<span class="ty">Integer</span> a = <span class="nm">127</span>, b = <span class="nm">127</span>;
+a == b;  <span class="cm">// true (cached!)</span>
+
+<span class="ty">Integer</span> c = <span class="nm">128</span>, d = <span class="nm">128</span>;
+c == d;  <span class="cm">// FALSE (new objects)</span>
+
+<span class="cm">// Collections force boxing:</span>
+<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; xs;  <span class="cm">// can't be List&lt;int&gt;</span>
+<span class="cm">// → heap allocation per element</span>`,
+        rustLabel: "Rust — values are just values",
+        rust: `<span class="kw">let</span> a = <span class="nm">127</span>; <span class="kw">let</span> b = <span class="nm">127</span>;
+a == b;  <span class="cm">// true. Always. It's math.</span>
+
+<span class="kw">let</span> c = <span class="nm">128</span>; <span class="kw">let</span> d = <span class="nm">128</span>;
+c == d;  <span class="cm">// true. Still math.</span>
+
+<span class="cm">// Collections hold real i32s inline:</span>
+<span class="kw">let</span> xs: <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; = <span class="fn">vec!</span>[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];
+<span class="cm">// contiguous memory, zero boxing</span>`
+      }},
+      { callout: { type: "danger", label: "char is not char", text: "Java's <code>char</code> is a UTF-16 code unit — an emoji needs two of them (a surrogate pair), and <code>\"🦀\".length()</code> is 2. Rust's <code>char</code> is a full Unicode scalar value (4 bytes): <code>'🦀'</code> is one <code>char</code>. This difference cascades into how strings work — next lesson." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "Rust numeric types behave like Java primitives (copied on assignment, compared by value) but with the generics power of boxed types — <code>Vec&lt;i32&gt;</code> just works, with no autoboxing overhead and no <code>NullPointerException</code> from unboxing a null <code>Integer</code>." } }
+    ],
+    quiz: {
+      q: "What happens when an i32 addition overflows in a Rust debug build?",
+      opts: [
+        { text: "It wraps around silently, like Java", correct: false },
+        { text: "The program panics immediately", correct: true },
+        { text: "It saturates at i32::MAX", correct: false },
+        { text: "It's a compile error", correct: false }
+      ],
+      feedback: "Debug builds panic on overflow to surface bugs early; release builds wrap for speed (like Java always does). When overflow behavior matters, say it explicitly: <code>checked_add</code>, <code>wrapping_add</code>, or <code>saturating_add</code>."
+    }
+  },
+
+  /* ---- 1.2 Strings ---- */
+  {
+    title: "Strings: String, &str, StringBuilder",
+    eyebrow: "Types & Data · 2",
+    blocks: [
+      { html: "<p>Java has one string type (<code>String</code>) plus builders. Rust has <strong>two</strong> you'll use constantly: <code>String</code> (owned, growable, heap-allocated) and <code>&amp;str</code> (a borrowed <em>view</em> into string data). Both are UTF-8, not UTF-16.</p><p>The mental model: <code>String</code> is like <code>StringBuilder</code> (you own it and can mutate it), and <code>&amp;str</code> is like a read-only <code>CharSequence</code> view that costs nothing to create.</p>" },
+      { table: {
+        headers: ["Java", "Rust", "Notes"],
+        rows: [
+          ["String (immutable)", "&str", "Borrowed slice; string literals are &'static str"],
+          ["StringBuilder", "String", "Owned + mutable via &mut; push_str, push"],
+          ["StringBuffer", "String", "No synchronized version needed — see the Legacy Sync lesson"],
+          ["s.substring(a, b)", "&s[a..b]", "Java copies; Rust returns a zero-copy view (byte indices!)"],
+          ["s.charAt(i)", "s.chars().nth(i)", "No O(1) char indexing — UTF-8 is variable-width"],
+          ["s.length()", "s.len() / s.chars().count()", "len() is bytes; chars().count() is characters"],
+          ["String.format(...)", "format!(...)", "Compile-time checked format string"],
+          ["s.split(\",\")", "s.split(',')", "Returns a lazy iterator, not an array"],
+          ["s.equals(t)", "s == t", "== compares content (PartialEq), not identity"],
+          ["s.isEmpty()", "s.is_empty()", ""]
+        ]
+      }},
+      { heading: "Building & concatenating" },
+      { compare: {
+        javaLabel: "Java",
+        java: `<span class="ty">String</span> name = <span class="st">"Duke"</span>;
+
+<span class="cm">// + creates new Strings each time</span>
+<span class="ty">String</span> greet = <span class="st">"Hello, "</span> + name + <span class="st">"!"</span>;
+
+<span class="cm">// Efficient building:</span>
+<span class="kw">var</span> sb = <span class="kw">new</span> <span class="ty">StringBuilder</span>();
+sb.<span class="fn">append</span>(<span class="st">"Hello, "</span>);
+sb.<span class="fn">append</span>(name);
+<span class="ty">String</span> s = sb.<span class="fn">toString</span>();
+
+<span class="ty">String</span> f = <span class="ty">String</span>.<span class="fn">format</span>(<span class="st">"%s is %d"</span>, name, <span class="nm">30</span>);`,
+        rustLabel: "Rust",
+        rust: `<span class="kw">let</span> name = <span class="st">"Ferris"</span>;        <span class="cm">// &str</span>
+
+<span class="cm">// format! is the go-to (checked at compile time)</span>
+<span class="kw">let</span> greet = <span class="fn">format!</span>(<span class="st">"Hello, {name}!"</span>);
+
+<span class="cm">// String IS the builder:</span>
+<span class="kw">let mut</span> s = <span class="ty">String</span>::<span class="fn">new</span>();
+s.<span class="fn">push_str</span>(<span class="st">"Hello, "</span>);
+s.<span class="fn">push_str</span>(name);
+s.<span class="fn">push</span>(<span class="st">'!'</span>);              <span class="cm">// single char</span>
+
+<span class="cm">// + moves the left side (ownership!):</span>
+<span class="kw">let</span> owned = <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"Hi "</span>);
+<span class="kw">let</span> joined = owned + name; <span class="cm">// owned is gone now</span>`
+      }},
+      { heading: "Views vs. copies" },
+      { compare: {
+        javaLabel: "Java — substring copies",
+        java: `<span class="ty">String</span> log = <span class="st">"ERROR: disk full"</span>;
+
+<span class="cm">// Copies characters into a new String</span>
+<span class="cm">// (since Java 7u6)</span>
+<span class="ty">String</span> level = log.<span class="fn">substring</span>(<span class="nm">0</span>, <span class="nm">5</span>);
+
+<span class="cm">// Passing strings around: cheap,</span>
+<span class="cm">// because references are shared</span>
+<span class="kw">void</span> <span class="fn">handle</span>(<span class="ty">String</span> s) { ... }`,
+        rustLabel: "Rust — slices are free views",
+        rust: `<span class="kw">let</span> log = <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"ERROR: disk full"</span>);
+
+<span class="cm">// Zero-copy view into log's buffer:</span>
+<span class="kw">let</span> level: <span class="op">&</span><span class="ty">str</span> = <span class="op">&</span>log[<span class="nm">0</span>..<span class="nm">5</span>];
+<span class="cm">// Borrow checker guarantees log</span>
+<span class="cm">// outlives this view — no dangling</span>
+
+<span class="cm">// Idiomatic APIs take &str, accepting</span>
+<span class="cm">// both String and literals:</span>
+<span class="kw">fn</span> <span class="fn">handle</span>(s: <span class="op">&</span><span class="ty">str</span>) { ... }
+<span class="fn">handle</span>(<span class="op">&</span>log);        <span class="cm">// String → &str (deref)</span>
+<span class="fn">handle</span>(<span class="st">"literal"</span>);   <span class="cm">// works too</span>`
+      }},
+      { heading: "Why you can't index a string" },
+      { compare: {
+        javaLabel: "Java — indexing lies to you",
+        java: `<span class="ty">String</span> s = <span class="st">"héllo🦀"</span>;
+
+s.<span class="fn">length</span>();     <span class="cm">// 7 — UTF-16 units, not chars</span>
+s.<span class="fn">charAt</span>(<span class="nm">5</span>);    <span class="cm">// half of a surrogate pair!</span>
+
+<span class="cm">// Correct but rarely done:</span>
+s.<span class="fn">codePointCount</span>(<span class="nm">0</span>, s.<span class="fn">length</span>()); <span class="cm">// 6</span>`,
+        rustLabel: "Rust — forces you to choose",
+        rust: `<span class="kw">let</span> s = <span class="st">"héllo🦀"</span>;
+
+s.<span class="fn">len</span>();              <span class="cm">// 10 — bytes (UTF-8)</span>
+<span class="cm">// s[5]  ← compile error! ambiguous</span>
+
+s.<span class="fn">chars</span>().<span class="fn">count</span>();    <span class="cm">// 6 — real characters</span>
+s.<span class="fn">chars</span>().<span class="fn">nth</span>(<span class="nm">5</span>);     <span class="cm">// Some('🦀')</span>
+s.<span class="fn">bytes</span>().<span class="fn">nth</span>(<span class="nm">0</span>);     <span class="cm">// Some(104) — b'h'</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "The <code>String</code> / <code>&amp;str</code> split is ownership applied to text. Own the buffer when you build or store it (<code>String</code>); borrow a view when you read it (<code>&amp;str</code>). Function parameters should almost always be <code>&amp;str</code> — the same advice as \"accept <code>CharSequence</code>, return <code>String</code>\" in Java, but enforced by the compiler." } }
+    ],
+    quiz: {
+      q: "What is &str in Rust?",
+      opts: [
+        { text: "A deprecated alias for String", correct: false },
+        { text: "A borrowed, zero-copy view into string data", correct: true },
+        { text: "A mutable string builder", correct: false },
+        { text: "A null-terminated C string", correct: false }
+      ],
+      feedback: "<code>&amp;str</code> is a slice — a pointer plus a length into UTF-8 data owned by someone else (a <code>String</code>, a literal in the binary, etc.). Creating one is free, and the borrow checker guarantees it never outlives the data it points into."
+    }
+  },
+
+  /* ---- 1.3 Collections ---- */
+  {
+    title: "Collections: List, Map, Set",
+    eyebrow: "Types & Data · 3",
+    blocks: [
+      { html: "<p>The mapping from <code>java.util</code> to <code>std::collections</code> is pleasantly direct. The big differences: Rust collections hold <strong>values, not references</strong> (a <code>Vec&lt;i32&gt;</code> is one contiguous block of memory), lookups return <code>Option</code> instead of <code>null</code>, and iteration interacts with ownership.</p>" },
+      { table: {
+        headers: ["Java", "Rust", "Notes"],
+        rows: [
+          ["ArrayList<T>", "Vec<T>", "The workhorse. Contiguous, growable"],
+          ["LinkedList<T>", "VecDeque<T>", "Ring buffer; actual linked lists are rare (and painful) in Rust"],
+          ["HashMap<K,V>", "HashMap<K,V>", "SipHash by default (DoS-resistant, slightly slower)"],
+          ["TreeMap<K,V>", "BTreeMap<K,V>", "Sorted; B-tree beats red-black on real hardware"],
+          ["HashSet<T>", "HashSet<T>", ""],
+          ["TreeSet<T>", "BTreeSet<T>", ""],
+          ["Stack<T> / Deque", "Vec<T>", "push / pop on a Vec is the idiomatic stack"],
+          ["PriorityQueue<T>", "BinaryHeap<T>", "⚠ Rust's is a max-heap; Java's is a min-heap. Use Reverse<T> to flip"],
+          ["int[] / T[]", "[T; N] / &[T]", "Arrays have compile-time length; slices are views"],
+          ["Map.Entry", "(K, V) tuple", "Iteration yields tuples you can destructure"]
+        ]
+      }},
+      { heading: "Creating & populating" },
+      { compare: {
+        javaLabel: "Java",
+        java: `<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; fixed = <span class="ty">List</span>.<span class="fn">of</span>(<span class="st">"a"</span>, <span class="st">"b"</span>);
+
+<span class="kw">var</span> list = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;<span class="ty">String</span>&gt;();
+list.<span class="fn">add</span>(<span class="st">"x"</span>);
+
+<span class="kw">var</span> map = <span class="kw">new</span> <span class="ty">HashMap</span>&lt;<span class="ty">String</span>, <span class="ty">Integer</span>&gt;();
+map.<span class="fn">put</span>(<span class="st">"one"</span>, <span class="nm">1</span>);
+
+<span class="kw">var</span> scores = <span class="ty">Map</span>.<span class="fn">of</span>(<span class="st">"a"</span>, <span class="nm">1</span>, <span class="st">"b"</span>, <span class="nm">2</span>);`,
+        rustLabel: "Rust",
+        rust: `<span class="kw">let</span> fixed = [<span class="st">"a"</span>, <span class="st">"b"</span>];          <span class="cm">// array</span>
+
+<span class="kw">let mut</span> list = <span class="ty">Vec</span>::<span class="fn">new</span>();
+list.<span class="fn">push</span>(<span class="st">"x"</span>);
+<span class="kw">let</span> v = <span class="fn">vec!</span>[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];         <span class="cm">// macro shorthand</span>
+
+<span class="kw">let mut</span> map = <span class="ty">HashMap</span>::<span class="fn">new</span>();
+map.<span class="fn">insert</span>(<span class="st">"one"</span>, <span class="nm">1</span>);
+
+<span class="kw">let</span> scores: <span class="ty">HashMap</span>&lt;_, _&gt; =
+    [(<span class="st">"a"</span>, <span class="nm">1</span>), (<span class="st">"b"</span>, <span class="nm">2</span>)].<span class="fn">into_iter</span>().<span class="fn">collect</span>();`
+      }},
+      { heading: "Lookups: null vs Option" },
+      { compare: {
+        javaLabel: "Java — null and defaults",
+        java: `<span class="ty">Integer</span> v = map.<span class="fn">get</span>(<span class="st">"missing"</span>);
+<span class="cm">// v is null — hope you remembered</span>
+
+<span class="kw">int</span> d = map.<span class="fn">getOrDefault</span>(<span class="st">"missing"</span>, <span class="nm">0</span>);
+
+<span class="cm">// Grouping idiom:</span>
+map.<span class="fn">computeIfAbsent</span>(key,
+    k -> <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;())
+   .<span class="fn">add</span>(item);`,
+        rustLabel: "Rust — Option and the entry API",
+        rust: `<span class="kw">let</span> v = map.<span class="fn">get</span>(<span class="st">"missing"</span>);
+<span class="cm">// v: Option&lt;&i32&gt; — must handle None</span>
+
+<span class="kw">let</span> d = map.<span class="fn">get</span>(<span class="st">"missing"</span>).<span class="fn">copied</span>().<span class="fn">unwrap_or</span>(<span class="nm">0</span>);
+
+<span class="cm">// Grouping idiom — entry API:</span>
+map.<span class="fn">entry</span>(key)
+   .<span class="fn">or_insert_with</span>(<span class="ty">Vec</span>::<span class="fn">new</span>)
+   .<span class="fn">push</span>(item);`
+      }},
+      { heading: "Streams vs. iterators" },
+      { compare: {
+        javaLabel: "Java — Stream pipeline",
+        java: `<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; result = names.<span class="fn">stream</span>()
+    .<span class="fn">filter</span>(n -> n.<span class="fn">length</span>() > <span class="nm">3</span>)
+    .<span class="fn">map</span>(<span class="ty">String</span>::toUpperCase)
+    .<span class="fn">sorted</span>()
+    .<span class="fn">collect</span>(<span class="ty">Collectors</span>.<span class="fn">toList</span>());
+
+<span class="kw">int</span> sum = nums.<span class="fn">stream</span>()
+    .<span class="fn">mapToInt</span>(<span class="ty">Integer</span>::intValue) <span class="cm">// unbox!</span>
+    .<span class="fn">sum</span>();`,
+        rustLabel: "Rust — iterator chain",
+        rust: `<span class="kw">let mut</span> result: <span class="ty">Vec</span>&lt;<span class="ty">String</span>&gt; = names.<span class="fn">iter</span>()
+    .<span class="fn">filter</span>(|n| n.<span class="fn">len</span>() > <span class="nm">3</span>)
+    .<span class="fn">map</span>(|n| n.<span class="fn">to_uppercase</span>())
+    .<span class="fn">collect</span>();
+result.<span class="fn">sort</span>();
+
+<span class="kw">let</span> sum: <span class="ty">i32</span> = nums.<span class="fn">iter</span>().<span class="fn">sum</span>();
+<span class="cm">// No unboxing step — they're real i32s</span>
+
+<span class="cm">// Three iteration modes, per ownership:</span>
+<span class="cm">// .iter()      borrows      (&T)</span>
+<span class="cm">// .iter_mut()  mutably      (&mut T)</span>
+<span class="cm">// .into_iter() consumes     (T)</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "Java has one <code>for (T t : list)</code>; Rust has three, because ownership applies to iteration too. <code>for x in &amp;v</code> borrows, <code>for x in &amp;mut v</code> lets you mutate elements, and <code>for x in v</code> consumes the collection — after that loop, <code>v</code> is gone. Also note: mutating a collection while iterating it is a <em>compile error</em> in Rust, not a <code>ConcurrentModificationException</code> at runtime." } },
+      { callout: { type: "tip", label: "Performance note", text: "Rust iterators are lazy like Streams, but compile down to the same machine code as a hand-written loop — no <code>Spliterator</code> machinery, no megamorphic call sites. <code>par_iter()</code> from the <code>rayon</code> crate is the analogue of <code>parallelStream()</code>." } }
+    ],
+    quiz: {
+      q: "What does map.get(key) return in Rust's HashMap?",
+      opts: [
+        { text: "The value, or null if absent", correct: false },
+        { text: "Option<&V> — Some(&value) or None", correct: true },
+        { text: "The value, or panics if absent", correct: false },
+        { text: "A default value for the type", correct: false }
+      ],
+      feedback: "It returns <code>Option&lt;&amp;V&gt;</code> — a <em>borrowed</em> reference wrapped in an Option. Both concerns are in the type: the value might not exist (Option), and it still belongs to the map (the <code>&amp;</code>)."
+    }
+  },
+
+  /* ---- 1.4 Legacy sync types ---- */
+  {
+    title: "Vector, StringBuffer, Hashtable",
+    eyebrow: "Types & Data · 4",
+    blocks: [
+      { html: "<p>Java 1.0 shipped collections with <code>synchronized</code> on every method: <code>Vector</code>, <code>Hashtable</code>, <code>StringBuffer</code>. They're now discouraged — but their modern replacements (<code>Collections.synchronizedList</code>, <code>ConcurrentHashMap</code>) still exist because <em>any</em> Java object can be silently shared across threads.</p><p>Rust has <strong>no synchronized variants of anything</strong> — and this is a feature. The <code>Send</code>/<code>Sync</code> traits make it a <em>compile error</em> to share an unprotected <code>Vec</code> across threads. You never pay for locking you don't need, and you can never forget locking you do need.</p>" },
+      { table: {
+        headers: ["Java", "Rust", "Notes"],
+        rows: [
+          ["Vector<T>", "Vec<T>", "Single-threaded use — the borrow checker already prevents races"],
+          ["Vector<T> (shared)", "Arc<Mutex<Vec<T>>>", "Locking is explicit and opt-in"],
+          ["StringBuffer", "String", "&mut exclusivity replaces synchronization"],
+          ["Hashtable<K,V>", "RwLock<HashMap<K,V>>", "Readers-writer lock for read-heavy workloads"],
+          ["Collections.synchronizedList(l)", "Arc<Mutex<Vec<T>>>", "Same idea, but the type says so"],
+          ["ConcurrentHashMap", "DashMap (crate)", "Sharded concurrent map; or RwLock<HashMap>"],
+          ["CopyOnWriteArrayList", "Arc<Vec<T>> (replace on write)", "Or the arc-swap crate"]
+        ]
+      }},
+      { heading: "The same shared list, in both worlds" },
+      { compare: {
+        javaLabel: "Java — sync baked into the class",
+        java: `<span class="cm">// Every method takes a lock,</span>
+<span class="cm">// even in single-threaded code:</span>
+<span class="ty">Vector</span>&lt;<span class="ty">String</span>&gt; v = <span class="kw">new</span> <span class="ty">Vector</span>&lt;&gt;();
+v.<span class="fn">add</span>(<span class="st">"a"</span>);   <span class="cm">// lock/unlock</span>
+v.<span class="fn">get</span>(<span class="nm">0</span>);     <span class="cm">// lock/unlock</span>
+
+<span class="cm">// Or wrap a modern list:</span>
+<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; s =
+  <span class="ty">Collections</span>.<span class="fn">synchronizedList</span>(
+    <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;());
+<span class="cm">// Type is still List — nothing tells</span>
+<span class="cm">// you (or the compiler) it's shared</span>`,
+        rustLabel: "Rust — sync visible in the type",
+        rust: `<span class="kw">use</span> std::sync::{<span class="ty">Arc</span>, <span class="ty">Mutex</span>};
+
+<span class="cm">// Single-threaded: plain Vec, zero locks.</span>
+<span class="cm">// Compiler stops any accidental sharing.</span>
+<span class="kw">let mut</span> v = <span class="fn">vec!</span>[<span class="st">"a"</span>];
+
+<span class="cm">// Actually shared? Say so in the type:</span>
+<span class="kw">let</span> shared = <span class="ty">Arc</span>::<span class="fn">new</span>(<span class="ty">Mutex</span>::<span class="fn">new</span>(<span class="ty">Vec</span>::<span class="fn">new</span>()));
+
+<span class="kw">let</span> handle = <span class="ty">Arc</span>::<span class="fn">clone</span>(<span class="op">&</span>shared);
+std::thread::<span class="fn">spawn</span>(<span class="kw">move</span> || {
+    handle.<span class="fn">lock</span>().<span class="fn">unwrap</span>().<span class="fn">push</span>(<span class="st">"a"</span>);
+});
+<span class="cm">// Forget the Mutex? Compile error.</span>`
+      }},
+      { heading: "Why per-method sync was never enough" },
+      { compare: {
+        javaLabel: "Java — check-then-act race",
+        java: `<span class="cm">// Each CALL is synchronized, but the</span>
+<span class="cm">// COMBINATION is not:</span>
+<span class="kw">if</span> (!vector.<span class="fn">isEmpty</span>()) {
+    <span class="cm">// ← another thread can clear() here!</span>
+    <span class="ty">String</span> first = vector.<span class="fn">get</span>(<span class="nm">0</span>);
+    <span class="cm">// ArrayIndexOutOfBoundsException</span>
+}
+
+<span class="cm">// Fix: manual client-side locking</span>
+<span class="kw">synchronized</span> (vector) {
+    <span class="kw">if</span> (!vector.<span class="fn">isEmpty</span>()) { ... }
+}`,
+        rustLabel: "Rust — the guard makes it atomic",
+        rust: `<span class="cm">// lock() returns a guard. While you</span>
+<span class="cm">// hold it, NOBODY else can touch the data.</span>
+<span class="kw">let</span> guard = shared.<span class="fn">lock</span>().<span class="fn">unwrap</span>();
+
+<span class="kw">if let</span> <span class="ty">Some</span>(first) = guard.<span class="fn">first</span>() {
+    <span class="cm">// Still holding the lock — the check</span>
+    <span class="cm">// and the read are one critical section</span>
+    <span class="fn">println!</span>(<span class="st">"{first}"</span>);
+}
+<span class="cm">// Lock released when guard drops (scope end)</span>
+<span class="cm">// Forgetting to unlock is impossible —</span>
+<span class="cm">// it's just ownership again</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "Java's synchronized wrappers protect individual method calls, but compound actions (check-then-act, iterate-while-modifying) still race — that's why <em>Effective Java</em> tells you they're mostly useless. Rust's <code>MutexGuard</code> flips the model: you lock the <em>data</em> for a <em>scope</em>, so the critical section is exactly as big as you make it, and unlocking is automatic via drop." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "<code>Mutex&lt;T&gt;</code> is not like <code>synchronized</code> — it's closer to an enforced version of the <code>@GuardedBy(\"lock\")</code> annotation from JCIP: the data lives <em>inside</em> the lock, and the only way to reach it is through <code>lock()</code>. The pattern you documented by convention in Java is a type in Rust." } }
+    ],
+    quiz: {
+      q: "Why does Rust have no synchronized collection classes like Vector or Hashtable?",
+      opts: [
+        { text: "Rust collections are lock-free internally", correct: false },
+        { text: "The compiler forbids sharing unprotected data across threads, so locking is opt-in via Mutex/RwLock", correct: true },
+        { text: "Rust doesn't support multithreading in std", correct: false },
+        { text: "Synchronization is handled by the garbage collector", correct: false }
+      ],
+      feedback: "Because <code>Send</code>/<code>Sync</code> make unsynchronized sharing a compile error, defensive always-on locking (Vector's design) is pointless. You wrap in <code>Mutex</code>/<code>RwLock</code> exactly where sharing happens — and the type signature documents it."
+    }
+  },
+
+  /* ---- 1.5 Thread & atomics ---- */
+  {
+    title: "Thread, AtomicInteger, ThreadLocal",
+    eyebrow: "Types & Data · 5",
+    blocks: [
+      { html: "<p>The classes from <code>java.lang</code> and <code>java.util.concurrent.atomic</code> map cleanly onto <code>std::thread</code> and <code>std::sync::atomic</code>. Two differences will strike you immediately: Rust threads <strong>return values directly</strong> (no <code>Callable</code> + <code>Future</code> dance), and closures must say how they capture variables (<code>move</code>).</p>" },
+      { table: {
+        headers: ["Java", "Rust", "Notes"],
+        rows: [
+          ["new Thread(runnable).start()", "thread::spawn(|| ...)", "Returns JoinHandle<T> — T is the closure's return value"],
+          ["thread.join()", "handle.join().unwrap()", "join() also delivers panics as Err"],
+          ["Callable<T> + Future<T>", "JoinHandle<T>", "Built in — no ExecutorService needed for this"],
+          ["AtomicInteger", "AtomicI32 / AtomicUsize", "Explicit memory Ordering instead of implicit volatile semantics"],
+          ["AtomicLong", "AtomicI64", ""],
+          ["AtomicBoolean", "AtomicBool", ""],
+          ["AtomicReference<T>", "— (use Mutex/RwLock)", "Or the arc-swap crate for lock-free swaps"],
+          ["volatile", "— (no equivalent)", "Use atomics with an explicit Ordering"],
+          ["ThreadLocal<T>", "thread_local! macro", "Access via .with(|v| ...)"],
+          ["ExecutorService", "rayon / tokio (crates)", "std has no pool; rayon for CPU work, tokio for async I/O"]
+        ]
+      }},
+      { heading: "Spawning threads that return values" },
+      { compare: {
+        javaLabel: "Java — Runnable can't return",
+        java: `<span class="cm">// Runnable: no return value</span>
+<span class="ty">Thread</span> t = <span class="kw">new</span> <span class="ty">Thread</span>(() ->
+    <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="st">"hi"</span>));
+t.<span class="fn">start</span>();
+t.<span class="fn">join</span>();
+
+<span class="cm">// Want a result? Full ceremony:</span>
+<span class="kw">var</span> pool = <span class="ty">Executors</span>.<span class="fn">newFixedThreadPool</span>(<span class="nm">1</span>);
+<span class="ty">Future</span>&lt;<span class="ty">Integer</span>&gt; f =
+    pool.<span class="fn">submit</span>(() -> <span class="nm">21</span> * <span class="nm">2</span>);
+<span class="kw">int</span> answer = f.<span class="fn">get</span>();  <span class="cm">// blocks</span>
+pool.<span class="fn">shutdown</span>();`,
+        rustLabel: "Rust — JoinHandle carries the result",
+        rust: `<span class="kw">use</span> std::thread;
+
+<span class="cm">// The closure's return value comes</span>
+<span class="cm">// back through join():</span>
+<span class="kw">let</span> handle = thread::<span class="fn">spawn</span>(|| {
+    <span class="fn">println!</span>(<span class="st">"hi"</span>);
+    <span class="nm">21</span> * <span class="nm">2</span>          <span class="cm">// last expr = return</span>
+});
+
+<span class="kw">let</span> answer: <span class="ty">i32</span> = handle.<span class="fn">join</span>().<span class="fn">unwrap</span>();
+<span class="cm">// join() → Result: Err if the thread</span>
+<span class="cm">// panicked — panics don't vanish silently</span>`
+      }},
+      { heading: "Atomic counters" },
+      { compare: {
+        javaLabel: "Java — AtomicInteger",
+        java: `<span class="kw">var</span> hits = <span class="kw">new</span> <span class="ty">AtomicInteger</span>(<span class="nm">0</span>);
+
+hits.<span class="fn">incrementAndGet</span>();
+hits.<span class="fn">addAndGet</span>(<span class="nm">5</span>);
+hits.<span class="fn">compareAndSet</span>(<span class="nm">6</span>, <span class="nm">10</span>);
+<span class="kw">int</span> now = hits.<span class="fn">get</span>();
+
+<span class="cm">// Memory ordering: sequentially</span>
+<span class="cm">// consistent, always, implicitly</span>`,
+        rustLabel: "Rust — AtomicI32 + explicit Ordering",
+        rust: `<span class="kw">use</span> std::sync::atomic::{<span class="ty">AtomicI32</span>, <span class="ty">Ordering</span>};
+
+<span class="kw">static</span> HITS: <span class="ty">AtomicI32</span> = <span class="ty">AtomicI32</span>::<span class="fn">new</span>(<span class="nm">0</span>);
+
+HITS.<span class="fn">fetch_add</span>(<span class="nm">1</span>, <span class="ty">Ordering</span>::SeqCst);
+HITS.<span class="fn">fetch_add</span>(<span class="nm">5</span>, <span class="ty">Ordering</span>::Relaxed);
+HITS.<span class="fn">compare_exchange</span>(<span class="nm">6</span>, <span class="nm">10</span>,
+    <span class="ty">Ordering</span>::SeqCst, <span class="ty">Ordering</span>::SeqCst);
+<span class="kw">let</span> now = HITS.<span class="fn">load</span>(<span class="ty">Ordering</span>::SeqCst);
+
+<span class="cm">// You choose the ordering — SeqCst is</span>
+<span class="cm">// the safe default (= Java's behavior);</span>
+<span class="cm">// Relaxed for plain counters is faster</span>`
+      }},
+      { heading: "Thread-local state" },
+      { compare: {
+        javaLabel: "Java — ThreadLocal",
+        java: `<span class="kw">static final</span> <span class="ty">ThreadLocal</span>&lt;<span class="ty">SimpleDateFormat</span>&gt;
+  FMT = <span class="ty">ThreadLocal</span>.<span class="fn">withInitial</span>(
+    () -> <span class="kw">new</span> <span class="ty">SimpleDateFormat</span>(<span class="st">"yyyy"</span>));
+
+<span class="ty">String</span> y = FMT.<span class="fn">get</span>().<span class="fn">format</span>(date);`,
+        rustLabel: "Rust — thread_local! macro",
+        rust: `<span class="kw">use</span> std::cell::<span class="ty">RefCell</span>;
+
+<span class="fn">thread_local!</span> {
+    <span class="kw">static</span> COUNTER: <span class="ty">RefCell</span>&lt;<span class="ty">u32</span>&gt; =
+        <span class="ty">RefCell</span>::<span class="fn">new</span>(<span class="nm">0</span>);
+}
+
+COUNTER.<span class="fn">with</span>(|c| {
+    <span class="op">*</span>c.<span class="fn">borrow_mut</span>() += <span class="nm">1</span>;
+});
+<span class="cm">// Scoped access — no leak on pool reuse,</span>
+<span class="cm">// the classic Java ThreadLocal gotcha</span>`
+      }},
+      { callout: { type: "danger", label: "The move keyword", text: "Rust closures for <code>thread::spawn</code> almost always need <code>move</code>: <code>thread::spawn(move || ...)</code>. Java lets lambdas capture effectively-final locals freely because the GC keeps them alive. Rust has no GC — the closure must take <em>ownership</em> of what it captures, or the compiler can't prove the data outlives the thread. Need it in two threads? That's what <code>Arc</code> is for." } },
+      { callout: { type: "tip", label: "Scoped threads", text: "<code>std::thread::scope</code> (Rust 1.63+) lets threads borrow stack data <em>without</em> <code>move</code> or <code>Arc</code>, because the scope guarantees all threads join before the borrowed data goes away. It's structured concurrency — same spirit as Java's <code>StructuredTaskScope</code>." } }
+    ],
+    quiz: {
+      q: "How does a spawned Rust thread deliver its result back to the caller?",
+      opts: [
+        { text: "Through a shared volatile field", correct: false },
+        { text: "It can't — you need an ExecutorService equivalent", correct: false },
+        { text: "The closure's return value comes back via JoinHandle::join()", correct: true },
+        { text: "Via a callback registered with the runtime", correct: false }
+      ],
+      feedback: "<code>thread::spawn</code> returns <code>JoinHandle&lt;T&gt;</code> where <code>T</code> is whatever the closure returns. <code>join()</code> gives you <code>Result&lt;T, ...&gt;</code> — <code>Ok(value)</code> normally, <code>Err</code> if the thread panicked. Java's Runnable/Callable/Future split collapses into one mechanism."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 2. OWNERSHIP ═══════════════════════ */
+{
+  name: "Ownership",
+  topics: [
+  {
+    title: "The Ownership Model",
+    eyebrow: "Ownership · 1",
+    blocks: [
+      { html: "<p>In Java, memory is managed by the <strong>Garbage Collector</strong>. You create objects freely, and the JVM cleans them up when they become unreachable. Rust takes a radically different approach: <strong>ownership</strong>.</p><p>Every value in Rust has exactly one owner. When the owner goes out of scope, the value is immediately dropped — no GC, no pause, no runtime overhead.</p>" },
+      { compare: {
+        javaLabel: "Java — GC manages memory",
+        java: `<span class="ty">String</span> s1 = <span class="kw">new</span> <span class="ty">String</span>(<span class="st">"hello"</span>);
+<span class="ty">String</span> s2 = s1; <span class="cm">// both point to same obj</span>
+<span class="cm">// GC tracks references,</span>
+<span class="cm">// cleans up when none remain</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(s1); <span class="cm">// fine</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(s2); <span class="cm">// fine</span>`,
+        rustLabel: "Rust — ownership transferred",
+        rust: `<span class="kw">let</span> s1 = <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hello"</span>);
+<span class="kw">let</span> s2 = s1; <span class="cm">// ownership MOVES to s2</span>
+<span class="cm">// s1 is now invalid!</span>
+
+<span class="cm">// println!("{s1}"); ← compile error!</span>
+<span class="fn">println!</span>(<span class="st">"{s2}"</span>); <span class="cm">// fine</span>
+<span class="cm">// s2 dropped here (end of scope)</span>`
+      }},
+      { heading: "Drop: deterministic destruction" },
+      { compare: {
+        javaLabel: "Java — try-with-resources for cleanup",
+        java: `<span class="cm">// Cleanup only for AutoCloseable,</span>
+<span class="cm">// only when you remember the try:</span>
+<span class="kw">try</span> (<span class="kw">var</span> f = <span class="kw">new</span> <span class="ty">FileInputStream</span>(<span class="st">"a"</span>)) {
+    <span class="cm">// use f</span>
+} <span class="cm">// closed here</span>
+
+<span class="cm">// Plain objects: finalize()/Cleaner —</span>
+<span class="cm">// runs "eventually", maybe never</span>`,
+        rustLabel: "Rust — every value has this behavior",
+        rust: `{
+    <span class="kw">let</span> f = <span class="ty">File</span>::<span class="fn">open</span>(<span class="st">"a"</span>)<span class="op">?</span>;
+    <span class="cm">// use f</span>
+} <span class="cm">// f dropped HERE — file closed,</span>
+  <span class="cm">// deterministically, always</span>
+
+<span class="cm">// Custom cleanup = impl Drop:</span>
+<span class="kw">impl</span> <span class="ty">Drop</span> <span class="kw">for</span> <span class="ty">Connection</span> {
+    <span class="kw">fn</span> <span class="fn">drop</span>(<span class="op">&mut</span> <span class="kw">self</span>) { <span class="kw">self</span>.<span class="fn">close</span>(); }
+}
+<span class="cm">// Like try-with-resources on EVERYTHING</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "Java assignments copy a <em>reference</em>. Rust <strong>moves</strong> ownership. After a move, the original variable is gone — the compiler enforces this at compile time, not runtime." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "Think of Rust ownership as try-with-resources enforced <em>everywhere</em>, automatically. No GC is needed because the compiler computes when every value dies." } }
+    ],
+    quiz: {
+      q: "After let s2 = s1; in Rust (where s1 is a String), what happens if you try to use s1?",
+      opts: [
+        { text: "s1 still works — it was cloned automatically", correct: false },
+        { text: "Compile error: s1 has been moved", correct: true },
+        { text: "Runtime panic when you access s1", correct: false },
+        { text: "Nothing — Rust garbage collects later", correct: false }
+      ],
+      feedback: "The borrow checker catches this at <strong>compile time</strong> — not runtime. To keep both, you'd write <code>s1.clone()</code>."
+    }
+  },
+  {
+    title: "Borrowing & References",
+    eyebrow: "Ownership · 2",
+    blocks: [
+      { html: "<p>Instead of always moving ownership, Rust lets you <strong>borrow</strong> a value. A borrow is a reference that doesn't take ownership — like passing a Java object to a method, but with compile-time rules.</p><p>Two kinds: <strong>immutable borrows</strong> (<code>&amp;T</code>) — many allowed at once — and <strong>mutable borrows</strong> (<code>&amp;mut T</code>) — exactly one, never alongside immutable ones.</p>" },
+      { compare: {
+        javaLabel: "Java — implicit shared mutation",
+        java: `<span class="kw">void</span> <span class="fn">addItem</span>(<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; list) {
+    list.<span class="fn">add</span>(<span class="st">"new item"</span>);
+}
+<span class="cm">// Caller's list is mutated — no warning</span>
+<span class="cm">// Two threads can mutate simultaneously</span>
+<span class="cm">// → data races at runtime</span>`,
+        rustLabel: "Rust — borrow rules enforced",
+        rust: `<span class="kw">fn</span> <span class="fn">add_item</span>(list: <span class="op">&mut</span> <span class="ty">Vec</span>&lt;<span class="ty">String</span>&gt;) {
+    list.<span class="fn">push</span>(<span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"new item"</span>));
+}
+<span class="cm">// Caller explicitly passes &mut</span>
+<span class="cm">// Only ONE &mut borrow at a time</span>
+<span class="cm">// → data races impossible at compile time</span>`
+      }},
+      { heading: "The rules, caught in the act" },
+      { compare: {
+        javaLabel: "Java — this compiles, then explodes",
+        java: `<span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; xs = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;(
+    <span class="ty">List</span>.<span class="fn">of</span>(<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>));
+
+<span class="kw">for</span> (<span class="kw">int</span> x : xs) {
+    <span class="kw">if</span> (x == <span class="nm">2</span>)
+        xs.<span class="fn">remove</span>(<span class="ty">Integer</span>.<span class="fn">valueOf</span>(<span class="nm">2</span>));
+}
+<span class="cm">// Compiles fine.</span>
+<span class="cm">// Runtime: ConcurrentModificationException</span>`,
+        rustLabel: "Rust — the same bug can't compile",
+        rust: `<span class="kw">let mut</span> xs = <span class="fn">vec!</span>[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];
+
+<span class="kw">for</span> x <span class="kw">in</span> <span class="op">&</span>xs {          <span class="cm">// immutable borrow</span>
+    <span class="kw">if</span> <span class="op">*</span>x == <span class="nm">2</span> {
+        xs.<span class="fn">remove</span>(<span class="nm">1</span>);   <span class="cm">// needs &mut — ✗</span>
+    }
+}
+<span class="cm">// error[E0502]: cannot borrow xs as</span>
+<span class="cm">// mutable because it is also borrowed</span>
+<span class="cm">// as immutable</span>
+
+<span class="cm">// The idiomatic fix:</span>
+xs.<span class="fn">retain</span>(|<span class="op">&</span>x| x != <span class="nm">2</span>);`
+      }},
+      { callout: { type: "tip", label: "Rule of thumb", text: "At any moment you can have <em>either</em> any number of <code>&amp;T</code> readers, <em>or</em> exactly one <code>&amp;mut T</code> writer. Readers-writer locking — enforced statically, on every value, at zero runtime cost." } },
+      { callout: { type: "insight", label: "Key Insight", text: "Java's <code>final</code> only pins the reference; the object stays mutable. Rust's <code>&amp;T</code> makes the <em>data</em> immutable through that reference. And note the default flip: Rust bindings are immutable unless you write <code>mut</code> — Java's are mutable unless you write <code>final</code>." } }
+    ],
+    quiz: {
+      q: "How many mutable references (&mut T) to the same data can coexist at one time?",
+      opts: [
+        { text: "Unlimited, just like Java", correct: false },
+        { text: "Exactly one", correct: true },
+        { text: "Two — one per thread", correct: false },
+        { text: "One per scope block", correct: false }
+      ],
+      feedback: "Exactly one <code>&amp;mut T</code> — and no <code>&amp;T</code> may coexist with it. This single rule eliminates both data races and iterator-invalidation bugs at compile time."
+    }
+  },
+  {
+    title: "Copy, Clone & Function Calls",
+    eyebrow: "Ownership · 3",
+    blocks: [
+      { html: "<p>Java has one calling convention: pass a copy of the reference (or the primitive). Rust has three, and the function signature tells you which: <strong>move</strong> (take ownership), <strong>borrow</strong> (<code>&amp;T</code> / <code>&amp;mut T</code>), or <strong>copy</strong> (for small <code>Copy</code> types like <code>i32</code>).</p>" },
+      { heading: "What a function call does to your value" },
+      { compare: {
+        javaLabel: "Java — always pass reference copy",
+        java: `<span class="kw">void</span> <span class="fn">consume</span>(<span class="ty">String</span> s) { ... }
+<span class="kw">void</span> <span class="fn">inspect</span>(<span class="ty">String</span> s) { ... }
+
+<span class="ty">String</span> s = <span class="st">"hi"</span>;
+<span class="fn">consume</span>(s);
+<span class="fn">inspect</span>(s);  <span class="cm">// s always still usable</span>
+
+<span class="cm">// Can inspect() mutate the object</span>
+<span class="cm">// behind s? Signature won't tell you.</span>
+<span class="cm">// (String is safe only because the</span>
+<span class="cm">// class happens to be immutable.)</span>`,
+        rustLabel: "Rust — the signature is a contract",
+        rust: `<span class="kw">fn</span> <span class="fn">consume</span>(s: <span class="ty">String</span>) { ... }   <span class="cm">// takes ownership</span>
+<span class="kw">fn</span> <span class="fn">inspect</span>(s: <span class="op">&</span><span class="ty">str</span>) { ... }     <span class="cm">// read-only borrow</span>
+<span class="kw">fn</span> <span class="fn">mutate</span>(s: <span class="op">&mut</span> <span class="ty">String</span>) { ... } <span class="cm">// exclusive borrow</span>
+
+<span class="kw">let mut</span> s = <span class="ty">String</span>::<span class="fn">from</span>(<span class="st">"hi"</span>);
+<span class="fn">inspect</span>(<span class="op">&</span>s);      <span class="cm">// s fine after</span>
+<span class="fn">mutate</span>(<span class="op">&mut</span> s);   <span class="cm">// s fine after</span>
+<span class="fn">consume</span>(s);       <span class="cm">// s is GONE now</span>
+<span class="cm">// inspect(&s); ← compile error: moved</span>`
+      }},
+      { heading: "Copy types: why i32 doesn't move" },
+      { compare: {
+        javaLabel: "Java — primitives vs objects",
+        java: `<span class="kw">int</span> a = <span class="nm">5</span>;
+<span class="kw">int</span> b = a;     <span class="cm">// bit copy</span>
+a = <span class="nm">99</span>;        <span class="cm">// b still 5</span>
+
+<span class="ty">Point</span> p = <span class="kw">new</span> <span class="ty">Point</span>(<span class="nm">1</span>, <span class="nm">2</span>);
+<span class="ty">Point</span> q = p;   <span class="cm">// SAME object</span>
+q.x = <span class="nm">99</span>;      <span class="cm">// p.x is 99 too!</span>
+<span class="cm">// The primitive/object split is</span>
+<span class="cm">// fixed by the language</span>`,
+        rustLabel: "Rust — Copy is a trait you opt into",
+        rust: `<span class="kw">let</span> a = <span class="nm">5</span>;
+<span class="kw">let</span> b = a;     <span class="cm">// i32 is Copy: bit copy</span>
+<span class="cm">// both usable; no move happened</span>
+
+#[<span class="fn">derive</span>(<span class="ty">Clone</span>, <span class="ty">Copy</span>)]
+<span class="kw">struct</span> <span class="ty">Point</span> { x: <span class="ty">i32</span>, y: <span class="ty">i32</span> }
+
+<span class="kw">let</span> p = <span class="ty">Point</span> { x: <span class="nm">1</span>, y: <span class="nm">2</span> };
+<span class="kw">let mut</span> q = p; <span class="cm">// independent COPY</span>
+q.x = <span class="nm">99</span>;      <span class="cm">// p.x still 1</span>
+<span class="cm">// Your own small structs can behave</span>
+<span class="cm">// like primitives — you choose</span>`
+      }},
+      { heading: "Clone: fixing Java's broken clone()" },
+      { compare: {
+        javaLabel: "Java — Cloneable is famously broken",
+        java: `<span class="kw">class</span> <span class="ty">Team</span> <span class="kw">implements</span> <span class="ty">Cloneable</span> {
+    <span class="ty">List</span>&lt;<span class="ty">String</span>&gt; members;
+
+    <span class="nm">@Override</span>
+    <span class="kw">public</span> <span class="ty">Team</span> <span class="fn">clone</span>() {
+        <span class="cm">// super.clone() is SHALLOW —</span>
+        <span class="cm">// members list is shared unless</span>
+        <span class="cm">// you remember to deep-copy it.</span>
+        <span class="cm">// Effective Java: "don't use this"</span>
+    }
+}`,
+        rustLabel: "Rust — derive(Clone) just works",
+        rust: `#[<span class="fn">derive</span>(<span class="ty">Clone</span>)]
+<span class="kw">struct</span> <span class="ty">Team</span> {
+    members: <span class="ty">Vec</span>&lt;<span class="ty">String</span>&gt;,
+}
+
+<span class="kw">let</span> a = <span class="ty">Team</span> { members: <span class="fn">vec!</span>[<span class="st">"ann"</span>.<span class="fn">into</span>()] };
+<span class="kw">let</span> b = a.<span class="fn">clone</span>();
+<span class="cm">// Deep by composition: Vec's Clone</span>
+<span class="cm">// clones each String, which clones</span>
+<span class="cm">// its buffer. Independent copies.</span>
+<span class="cm">// And every clone() is VISIBLE in the</span>
+<span class="cm">// code — costs are never hidden.</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "Reading Rust code, allocation and copying costs are visible: a <code>.clone()</code> here, a <code>String::from</code> there. In Java, defensive copies and hidden allocations hide inside methods. This is what people mean by Rust making costs <em>explicit</em>." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "<code>Copy</code> ≈ \"behaves like a Java primitive\" (implicit bit-copy; only for types with no heap data). <code>Clone</code> ≈ a copy constructor you call explicitly. All <code>Copy</code> types are also <code>Clone</code>." } }
+    ],
+    quiz: {
+      q: "Which of these types is Copy (implicitly copied instead of moved)?",
+      opts: [
+        { text: "String", correct: false },
+        { text: "Vec<i32>", correct: false },
+        { text: "i32", correct: true },
+        { text: "HashMap<String, i32>", correct: false }
+      ],
+      feedback: "Fixed-size, stack-only types (<code>i32</code>, <code>f64</code>, <code>bool</code>, <code>char</code>, shared references <code>&amp;T</code>, and small structs of these that derive <code>Copy</code>) are copied. Anything owning heap memory — <code>String</code>, <code>Vec</code>, <code>HashMap</code> — moves, because a bit-copy would create two owners of one buffer."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 3. TRAITS & GENERICS ═══════════════════════ */
+{
+  name: "Traits & Generics",
+  topics: [
+  {
+    title: "Traits vs. Interfaces",
+    eyebrow: "Traits & Generics · 1",
+    blocks: [
+      { html: "<p>Java uses <strong>interfaces</strong> and abstract classes for polymorphism. Rust uses <strong>traits</strong>. They look similar, but traits can be implemented for <em>any</em> type — including types you didn't define — and Rust has no inheritance at all: composition and traits cover everything.</p>" },
+      { compare: {
+        javaLabel: "Java — interface + nullable",
+        java: `<span class="kw">interface</span> <span class="ty">Describable</span> {
+    <span class="ty">String</span> <span class="fn">describe</span>();
+    <span class="cm">// default methods since Java 8:</span>
+    <span class="kw">default</span> <span class="ty">String</span> <span class="fn">shout</span>() {
+        <span class="kw">return</span> <span class="fn">describe</span>().<span class="fn">toUpperCase</span>();
+    }
+}
+
+<span class="kw">class</span> <span class="ty">Cat</span> <span class="kw">implements</span> <span class="ty">Describable</span> {
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">describe</span>() {
+        <span class="kw">return</span> <span class="st">"I'm a cat"</span>;
+    }
+}
+
+<span class="ty">Cat</span> c = <span class="kw">null</span>;
+c.<span class="fn">describe</span>(); <span class="cm">// NullPointerException!</span>`,
+        rustLabel: "Rust — trait + Option<T>",
+        rust: `<span class="kw">trait</span> <span class="ty">Describable</span> {
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&</span><span class="kw">self</span>) -> <span class="ty">String</span>;
+    <span class="cm">// default methods, same idea:</span>
+    <span class="kw">fn</span> <span class="fn">shout</span>(<span class="op">&</span><span class="kw">self</span>) -> <span class="ty">String</span> {
+        <span class="kw">self</span>.<span class="fn">describe</span>().<span class="fn">to_uppercase</span>()
+    }
+}
+
+<span class="kw">struct</span> <span class="ty">Cat</span>;
+<span class="kw">impl</span> <span class="ty">Describable</span> <span class="kw">for</span> <span class="ty">Cat</span> {
+    <span class="kw">fn</span> <span class="fn">describe</span>(<span class="op">&</span><span class="kw">self</span>) -> <span class="ty">String</span> {
+        <span class="st">"I'm a cat"</span>.<span class="fn">into</span>()
+    }
+}
+
+<span class="kw">let</span> c: <span class="ty">Option</span>&lt;<span class="ty">Cat</span>&gt; = <span class="ty">None</span>;
+<span class="kw">if let</span> <span class="ty">Some</span>(cat) = c { cat.<span class="fn">describe</span>(); }`
+      }},
+      { heading: "Implementing traits on types you don't own" },
+      { compare: {
+        javaLabel: "Java — can't retrofit an interface",
+        java: `<span class="cm">// You want java.time.Duration to</span>
+<span class="cm">// implement your Pretty interface.</span>
+<span class="cm">// You CAN'T — you don't own the class.</span>
+
+<span class="cm">// Workarounds: wrapper classes,</span>
+<span class="cm">// static utility methods, adapters…</span>
+<span class="kw">class</span> <span class="ty">PrettyDuration</span> {
+    <span class="kw">private final</span> <span class="ty">Duration</span> d;
+    <span class="ty">String</span> <span class="fn">pretty</span>() { ... }
+}`,
+        rustLabel: "Rust — impl your trait on their type",
+        rust: `<span class="kw">use</span> std::time::<span class="ty">Duration</span>;
+
+<span class="kw">trait</span> <span class="ty">Pretty</span> {
+    <span class="kw">fn</span> <span class="fn">pretty</span>(<span class="op">&</span><span class="kw">self</span>) -> <span class="ty">String</span>;
+}
+
+<span class="cm">// Your trait, std's type — allowed:</span>
+<span class="kw">impl</span> <span class="ty">Pretty</span> <span class="kw">for</span> <span class="ty">Duration</span> {
+    <span class="kw">fn</span> <span class="fn">pretty</span>(<span class="op">&</span><span class="kw">self</span>) -> <span class="ty">String</span> {
+        <span class="fn">format!</span>(<span class="st">"{}s"</span>, <span class="kw">self</span>.<span class="fn">as_secs</span>())
+    }
+}
+
+<span class="ty">Duration</span>::<span class="fn">from_secs</span>(<span class="nm">90</span>).<span class="fn">pretty</span>();`
+      }},
+      { callout: { type: "danger", label: "The Orphan Rule", text: "One constraint keeps this coherent: to write <code>impl Trait for Type</code>, at least one of the trait or the type must be defined in your crate. You can't implement <code>serde::Serialize</code> for <code>std::Duration</code> — neither is yours. (Workaround: the newtype pattern, <code>struct MyDuration(Duration)</code>.)" } },
+      { callout: { type: "insight", label: "Key Insight", text: "Standard traits replace Java's magic methods and marker interfaces: <code>Display</code> ≈ <code>toString()</code>, <code>PartialEq</code>/<code>Eq</code> ≈ <code>equals()</code>, <code>Hash</code> ≈ <code>hashCode()</code>, <code>Ord</code> ≈ <code>Comparable</code>, <code>From/Into</code> ≈ conversion constructors, <code>Iterator</code> ≈ <code>Iterable</code>+<code>Iterator</code> fused. Most are one <code>#[derive(...)]</code> away — no IDE-generated equals/hashCode boilerplate." } }
+    ],
+    quiz: {
+      q: "In Rust, how do you express a value that might not exist (Java's null)?",
+      opts: [
+        { text: "Use null, just like Java", correct: false },
+        { text: "Use Optional<T> from std", correct: false },
+        { text: "Use Option<T> — Some(val) or None", correct: true },
+        { text: "Use a nullable pointer type", correct: false }
+      ],
+      feedback: "<code>Option&lt;T&gt;</code> is built into the language, and the compiler forces you to handle both cases. NullPointerException is impossible in safe Rust — and unlike Java's <code>Optional</code>, it costs nothing (a <code>Option&lt;&amp;T&gt;</code> compiles to a plain nullable pointer)."
+    }
+  },
+  {
+    title: "Enums & Pattern Matching",
+    eyebrow: "Traits & Generics · 2",
+    blocks: [
+      { html: "<p>Java enums are a fixed set of named constants (which may carry fields). Rust enums are full <strong>algebraic data types</strong>: each variant can carry <em>different</em> data. The closest modern Java analogue is a <code>sealed interface</code> with <code>record</code> implementations — Rust had this from day one, with less ceremony.</p>" },
+      { compare: {
+        javaLabel: "Java — sealed interface + records (21)",
+        java: `<span class="kw">sealed interface</span> <span class="ty">Shape</span>
+    <span class="kw">permits</span> <span class="ty">Circle</span>, <span class="ty">Rect</span>, <span class="ty">Point</span> {}
+
+<span class="kw">record</span> <span class="ty">Circle</span>(<span class="kw">double</span> r) <span class="kw">implements</span> <span class="ty">Shape</span> {}
+<span class="kw">record</span> <span class="ty">Rect</span>(<span class="kw">double</span> w, <span class="kw">double</span> h)
+    <span class="kw">implements</span> <span class="ty">Shape</span> {}
+<span class="kw">record</span> <span class="ty">Point</span>() <span class="kw">implements</span> <span class="ty">Shape</span> {}
+
+<span class="kw">double</span> area = <span class="kw">switch</span> (shape) {
+    <span class="kw">case</span> <span class="ty">Circle</span> c -> <span class="ty">Math</span>.PI * c.<span class="fn">r</span>() * c.<span class="fn">r</span>();
+    <span class="kw">case</span> <span class="ty">Rect</span> r   -> r.<span class="fn">w</span>() * r.<span class="fn">h</span>();
+    <span class="kw">case</span> <span class="ty">Point</span> p  -> <span class="nm">0</span>;
+};
+<span class="cm">// Exhaustive since sealed — good!</span>`,
+        rustLabel: "Rust — one enum, data per variant",
+        rust: `<span class="kw">enum</span> <span class="ty">Shape</span> {
+    <span class="ty">Circle</span> { r: <span class="ty">f64</span> },
+    <span class="ty">Rect</span> { w: <span class="ty">f64</span>, h: <span class="ty">f64</span> },
+    <span class="ty">Point</span>,
+}
+
+<span class="kw">let</span> area = <span class="kw">match</span> shape {
+    <span class="ty">Shape</span>::<span class="ty">Circle</span> { r } =>
+        std::f64::consts::PI * r * r,
+    <span class="ty">Shape</span>::<span class="ty">Rect</span> { w, h } => w * h,
+    <span class="ty">Shape</span>::<span class="ty">Point</span> => <span class="nm">0.0</span>,
+};
+<span class="cm">// match is ALWAYS exhaustive.</span>
+<span class="cm">// Add a variant → every match in the</span>
+<span class="cm">// codebase fails to compile until handled</span>`
+      }},
+      { heading: "Option and Result are just enums" },
+      { compare: {
+        javaLabel: "Java — Optional is a library class",
+        java: `<span class="cm">// java.util.Optional: a normal class</span>
+<span class="cm">// with special methods</span>
+<span class="ty">Optional</span>&lt;<span class="ty">User</span>&gt; u = <span class="fn">findUser</span>(id);
+
+<span class="ty">String</span> name = u
+    .<span class="fn">map</span>(<span class="ty">User</span>::name)
+    .<span class="fn">orElse</span>(<span class="st">"anonymous"</span>);
+
+<span class="cm">// Nothing stops Optional itself</span>
+<span class="cm">// from being null. Yes, really.</span>`,
+        rustLabel: "Rust — language-level pattern matching",
+        rust: `<span class="cm">// Literally defined in std as:</span>
+<span class="kw">enum</span> <span class="ty">Option</span>&lt;T&gt; { <span class="ty">Some</span>(T), <span class="ty">None</span> }
+
+<span class="kw">let</span> u: <span class="ty">Option</span>&lt;<span class="ty">User</span>&gt; = <span class="fn">find_user</span>(id);
+
+<span class="kw">let</span> name = u
+    .<span class="fn">map</span>(|u| u.name)
+    .<span class="fn">unwrap_or</span>(<span class="st">"anonymous"</span>.<span class="fn">into</span>());
+
+<span class="cm">// Or destructure directly:</span>
+<span class="kw">match</span> <span class="fn">find_user</span>(id) {
+    <span class="ty">Some</span>(u) => <span class="fn">greet</span>(<span class="op">&</span>u),
+    <span class="ty">None</span> => <span class="fn">register_flow</span>(),
+}
+
+<span class="kw">while let</span> <span class="ty">Some</span>(job) = queue.<span class="fn">pop</span>() { ... }`
+      }},
+      { heading: "Match is an expression with superpowers" },
+      { compare: {
+        javaLabel: "Java — switch patterns (21+)",
+        java: `<span class="ty">String</span> desc = <span class="kw">switch</span> (n) {
+    <span class="kw">case</span> <span class="nm">0</span> -> <span class="st">"zero"</span>;
+    <span class="kw">case</span> <span class="ty">Integer</span> i <span class="kw">when</span> i < <span class="nm">0</span> ->
+        <span class="st">"negative"</span>;
+    <span class="kw">default</span> -> <span class="st">"positive"</span>;
+};`,
+        rustLabel: "Rust — ranges, guards, bindings, tuples",
+        rust: `<span class="kw">let</span> desc = <span class="kw">match</span> n {
+    <span class="nm">0</span> => <span class="st">"zero"</span>,
+    <span class="nm">1</span>..=<span class="nm">9</span> => <span class="st">"single digit"</span>,     <span class="cm">// ranges</span>
+    x <span class="kw">if</span> x < <span class="nm">0</span> => <span class="st">"negative"</span>,     <span class="cm">// guards</span>
+    _ => <span class="st">"big"</span>,
+};
+
+<span class="cm">// Destructure tuples & structs:</span>
+<span class="kw">match</span> point {
+    (<span class="nm">0</span>, <span class="nm">0</span>) => <span class="st">"origin"</span>,
+    (x, <span class="nm">0</span>) => <span class="st">"on x-axis"</span>,
+    (_, y) <span class="kw">if</span> y > <span class="nm">0</span> => <span class="st">"upper half"</span>,
+    _ => <span class="st">"elsewhere"</span>,
+};`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "Rust enums + match are the backbone of the whole language: <code>Option</code> replaces null, <code>Result</code> replaces exceptions, state machines replace flag booleans. What Java added in 17–21 (sealed types, records, pattern switch) is Java converging on this model." } }
+    ],
+    quiz: {
+      q: "What happens if a Rust match doesn't cover all enum variants?",
+      opts: [
+        { text: "The unmatched case throws at runtime", correct: false },
+        { text: "It falls through silently", correct: false },
+        { text: "Compile error — match must be exhaustive", correct: true },
+        { text: "A default branch is auto-generated", correct: false }
+      ],
+      feedback: "Exhaustiveness is enforced at compile time. This makes adding an enum variant a <em>safe refactor</em>: the compiler lists every match you now need to update — like a sealed-interface switch in Java 21, but for every match in the language."
+    }
+  },
+  {
+    title: "Generics: Erasure vs. Monomorphization",
+    eyebrow: "Traits & Generics · 3",
+    blocks: [
+      { html: "<p>Java generics are compile-time only: <strong>type erasure</strong> strips them, so at runtime a <code>List&lt;String&gt;</code> is just a <code>List</code>. Rust does the opposite — <strong>monomorphization</strong>: the compiler stamps out a specialized copy of generic code for each concrete type, like C++ templates but type-checked up front.</p>" },
+      { heading: "Bounds: extends vs. trait bounds" },
+      { compare: {
+        javaLabel: "Java",
+        java: `<span class="kw">static</span> &lt;T <span class="kw">extends</span> <span class="ty">Comparable</span>&lt;T&gt;&gt;
+T <span class="fn">max</span>(<span class="ty">List</span>&lt;T&gt; xs) {
+    T best = xs.<span class="fn">get</span>(<span class="nm">0</span>);
+    <span class="kw">for</span> (T x : xs)
+        <span class="kw">if</span> (x.<span class="fn">compareTo</span>(best) > <span class="nm">0</span>)
+            best = x;
+    <span class="kw">return</span> best;
+}
+
+<span class="cm">// Multiple bounds:</span>
+&lt;T <span class="kw">extends</span> <span class="ty">Comparable</span>&lt;T&gt; &amp; <span class="ty">Serializable</span>&gt;`,
+        rustLabel: "Rust",
+        rust: `<span class="kw">fn</span> <span class="fn">max</span>&lt;T: <span class="ty">Ord</span>&gt;(xs: <span class="op">&</span>[T]) -> <span class="op">&</span>T {
+    <span class="kw">let mut</span> best = <span class="op">&</span>xs[<span class="nm">0</span>];
+    <span class="kw">for</span> x <span class="kw">in</span> xs {
+        <span class="kw">if</span> x > best { best = x; }
+    } <span class="cm">// > works because T: Ord</span>
+    best
+}
+
+<span class="cm">// Multiple bounds — where clause:</span>
+<span class="kw">fn</span> <span class="fn">process</span>&lt;T&gt;(x: T)
+<span class="kw">where</span>
+    T: <span class="ty">Ord</span> + <span class="ty">Clone</span> + <span class="ty">Send</span>,
+{ ... }`
+      }},
+      { heading: "What survives to runtime" },
+      { compare: {
+        javaLabel: "Java — erasure limitations",
+        java: `<span class="ty">List</span>&lt;<span class="ty">String</span>&gt; a; <span class="ty">List</span>&lt;<span class="ty">Integer</span>&gt; b;
+a.<span class="fn">getClass</span>() == b.<span class="fn">getClass</span>(); <span class="cm">// true!</span>
+
+<span class="cm">// Consequences:</span>
+<span class="cm">// ✗ new T()          — can't</span>
+<span class="cm">// ✗ new T[10]        — can't</span>
+<span class="cm">// ✗ x instanceof List&lt;String&gt; — can't</span>
+<span class="cm">// ✗ overload f(List&lt;A&gt;) / f(List&lt;B&gt;)</span>
+<span class="cm">// → Class&lt;T&gt; tokens, @SuppressWarnings,</span>
+<span class="cm">//   unchecked casts everywhere</span>`,
+        rustLabel: "Rust — monomorphization",
+        rust: `<span class="kw">fn</span> <span class="fn">largest</span>&lt;T: <span class="ty">Ord</span>&gt;(xs: <span class="op">&</span>[T]) -> <span class="op">&</span>T { ... }
+
+<span class="fn">largest</span>(<span class="op">&</span><span class="fn">vec!</span>[<span class="nm">1</span>, <span class="nm">2</span>]);       <span class="cm">// i32 version</span>
+<span class="fn">largest</span>(<span class="op">&</span><span class="fn">vec!</span>[<span class="st">"a"</span>, <span class="st">"b"</span>]);   <span class="cm">// &str version</span>
+
+<span class="cm">// Compiler emits largest_i32 and</span>
+<span class="cm">// largest_str — real, separate,</span>
+<span class="cm">// fully-inlined machine code.</span>
+<span class="cm">// ✓ no boxing   ✓ no casts</span>
+<span class="cm">// ✓ static dispatch, zero overhead</span>
+<span class="cm">// Cost: larger binary, slower compile</span>`
+      }},
+      { heading: "Dynamic dispatch is opt-in: dyn Trait" },
+      { compare: {
+        javaLabel: "Java — always virtual",
+        java: `<span class="cm">// Every interface call is dynamic</span>
+<span class="cm">// dispatch (JIT may devirtualize):</span>
+<span class="ty">List</span>&lt;<span class="ty">Shape</span>&gt; shapes = ...;
+<span class="kw">for</span> (<span class="ty">Shape</span> s : shapes)
+    s.<span class="fn">area</span>();  <span class="cm">// vtable lookup</span>`,
+        rustLabel: "Rust — you choose static or dynamic",
+        rust: `<span class="cm">// Static (monomorphized) — default:</span>
+<span class="kw">fn</span> <span class="fn">print_area</span>(s: <span class="op">&</span><span class="kw">impl</span> <span class="ty">Shape</span>) {
+    <span class="fn">println!</span>(<span class="st">"{}"</span>, s.<span class="fn">area</span>());
+}
+
+<span class="cm">// Dynamic — heterogeneous collection:</span>
+<span class="kw">let</span> shapes: <span class="ty">Vec</span>&lt;<span class="ty">Box</span>&lt;<span class="kw">dyn</span> <span class="ty">Shape</span>&gt;&gt; = <span class="fn">vec!</span>[
+    <span class="ty">Box</span>::<span class="fn">new</span>(<span class="ty">Circle</span> { r: <span class="nm">1.0</span> }),
+    <span class="ty">Box</span>::<span class="fn">new</span>(<span class="ty">Rect</span> { w: <span class="nm">2.0</span>, h: <span class="nm">3.0</span> }),
+];
+<span class="kw">for</span> s <span class="kw">in</span> <span class="op">&</span>shapes {
+    s.<span class="fn">area</span>();  <span class="cm">// vtable — like Java</span>
+}`
+      }},
+      { callout: { type: "concept", label: "Java Mental Model", text: "<code>Box&lt;dyn Trait&gt;</code> ≈ \"a Java interface reference\": heap-allocated, dynamically dispatched. <code>impl Trait</code> / <code>T: Trait</code> ≈ what the JIT does when it devirtualizes and inlines a hot monomorphic call site — except Rust guarantees it at compile time, everywhere." } },
+      { callout: { type: "tip", label: "No wildcards", text: "Rust has no <code>? extends</code> / <code>? super</code> — PECS doesn't exist. Variance is inferred automatically from how types are used, and because generic code is monomorphized, most of the situations that need wildcards in Java simply don't arise." } }
+    ],
+    quiz: {
+      q: "What does monomorphization mean for a generic Rust function?",
+      opts: [
+        { text: "Types are erased at compile time like Java", correct: false },
+        { text: "The compiler generates a specialized copy per concrete type used", correct: true },
+        { text: "All calls go through a vtable", correct: false },
+        { text: "Only one type parameter is allowed per function", correct: false }
+      ],
+      feedback: "Each concrete instantiation becomes real, specialized machine code with static dispatch and full inlining — zero-cost generics. The trade-off versus erasure: bigger binaries and longer compiles. Dynamic dispatch still exists when you want it: <code>dyn Trait</code>."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 4. ERROR HANDLING ═══════════════════════ */
+{
+  name: "Error Handling",
+  topics: [
+  {
+    title: "Result<T,E> vs. Exceptions",
+    eyebrow: "Error Handling · 1",
+    blocks: [
+      { html: "<p>Java uses checked and unchecked exceptions that propagate invisibly up the call stack. Rust has no exceptions. Errors are <strong>values</strong>: fallible functions return <code>Result&lt;T, E&gt;</code>, and the compiler warns if you ignore one.</p>" },
+      { compare: {
+        javaLabel: "Java — exceptions",
+        java: `<span class="cm">// Checked: caller MUST handle</span>
+<span class="kw">public</span> <span class="ty">String</span> <span class="fn">readFile</span>(<span class="ty">String</span> path)
+    <span class="kw">throws</span> <span class="ty">IOException</span> {
+    <span class="kw">return</span> <span class="ty">Files</span>.<span class="fn">readString</span>(<span class="ty">Path</span>.<span class="fn">of</span>(path));
+}
+
+<span class="kw">try</span> {
+    <span class="ty">String</span> s = <span class="fn">readFile</span>(<span class="st">"data.txt"</span>);
+} <span class="kw">catch</span> (<span class="ty">IOException</span> e) {
+    e.<span class="fn">printStackTrace</span>();
+}`,
+        rustLabel: "Rust — Result<T, E>",
+        rust: `<span class="kw">use</span> std::fs;
+
+<span class="kw">fn</span> <span class="fn">read_file</span>(path: <span class="op">&</span><span class="ty">str</span>)
+    -> <span class="ty">Result</span>&lt;<span class="ty">String</span>, std::io::<span class="ty">Error</span>&gt; {
+    fs::<span class="fn">read_to_string</span>(path)
+}
+
+<span class="kw">match</span> <span class="fn">read_file</span>(<span class="st">"data.txt"</span>) {
+    <span class="ty">Ok</span>(content) => <span class="fn">println!</span>(<span class="st">"{content}"</span>),
+    <span class="ty">Err</span>(e) => <span class="fn">eprintln!</span>(<span class="st">"Error: {e}"</span>),
+}
+
+<span class="cm">// Or propagate with ? :</span>
+<span class="kw">let</span> content = <span class="fn">read_file</span>(<span class="st">"data.txt"</span>)<span class="op">?</span>;`
+      }},
+      { heading: "Composing fallible operations" },
+      { compare: {
+        javaLabel: "Java — nested try or unchecked escape",
+        java: `<span class="ty">Config</span> <span class="fn">load</span>() <span class="kw">throws</span> <span class="ty">ConfigException</span> {
+    <span class="kw">try</span> {
+        <span class="ty">String</span> raw = <span class="ty">Files</span>.<span class="fn">readString</span>(PATH);
+        <span class="kw">try</span> {
+            <span class="kw">return</span> <span class="fn">parse</span>(raw);
+        } <span class="kw">catch</span> (<span class="ty">ParseException</span> e) {
+            <span class="kw">throw new</span> <span class="ty">ConfigException</span>(e);
+        }
+    } <span class="kw">catch</span> (<span class="ty">IOException</span> e) {
+        <span class="kw">throw new</span> <span class="ty">ConfigException</span>(e);
+    }
+}`,
+        rustLabel: "Rust — ? converts and propagates",
+        rust: `<span class="kw">fn</span> <span class="fn">load</span>() -> <span class="ty">Result</span>&lt;<span class="ty">Config</span>, <span class="ty">ConfigError</span>&gt; {
+    <span class="kw">let</span> raw = fs::<span class="fn">read_to_string</span>(PATH)<span class="op">?</span>;
+    <span class="kw">let</span> cfg = <span class="fn">parse</span>(<span class="op">&</span>raw)<span class="op">?</span>;
+    <span class="ty">Ok</span>(cfg)
+}
+<span class="cm">// Each ? early-returns the error,</span>
+<span class="cm">// auto-converting via From&lt;io::Error&gt;</span>
+<span class="cm">// impls on ConfigError.</span>
+
+<span class="cm">// Combinators, like Optional's API:</span>
+<span class="fn">parse</span>(<span class="op">&</span>raw)
+    .<span class="fn">map</span>(|c| c.<span class="fn">normalized</span>())
+    .<span class="fn">unwrap_or_default</span>();`
+      }},
+      { heading: "Custom error types" },
+      { compare: {
+        javaLabel: "Java — exception hierarchy",
+        java: `<span class="kw">public class</span> <span class="ty">ConfigException</span>
+        <span class="kw">extends</span> <span class="ty">Exception</span> {
+    <span class="kw">public</span> <span class="ty">ConfigException</span>(<span class="ty">Throwable</span> c) {
+        <span class="kw">super</span>(c);
+    }
+}`,
+        rustLabel: "Rust — an enum + thiserror",
+        rust: `<span class="kw">use</span> thiserror::<span class="ty">Error</span>;
+
+#[<span class="fn">derive</span>(<span class="ty">Error</span>, <span class="ty">Debug</span>)]
+<span class="kw">enum</span> <span class="ty">ConfigError</span> {
+    #[<span class="fn">error</span>(<span class="st">"cannot read config: {0}"</span>)]
+    <span class="ty">Io</span>(#[<span class="fn">from</span>] std::io::<span class="ty">Error</span>),
+    #[<span class="fn">error</span>(<span class="st">"invalid syntax at line {line}"</span>)]
+    <span class="ty">Parse</span> { line: <span class="ty">usize</span> },
+}
+<span class="cm">// The #[from] makes ? auto-convert.</span>
+<span class="cm">// Callers can match on exact variants —</span>
+<span class="cm">// like multi-catch, but exhaustive.</span>`
+      }},
+      { callout: { type: "tip", label: "The ? operator", text: "<code>?</code> is the entire ergonomic story: on <code>Err</code>, return early (converting the error type via <code>From</code>); on <code>Ok</code>, unwrap the value. It's checked exceptions with the boilerplate compiled away — and it works on <code>Option</code> too." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "<code>Result&lt;T, E&gt;</code> is <code>Either&lt;Error, Value&gt;</code> from Vavr/functional Java, promoted to the standard idiom. The error path is part of the return type, so it shows up in IDE tooltips, docs, and code review — not just in a <code>throws</code> clause people learn to ignore." } }
+    ],
+    quiz: {
+      q: "What does the ? operator do in a Rust function returning Result<T, E>?",
+      opts: [
+        { text: "Converts Result to Option", correct: false },
+        { text: "Panics if the value is Err", correct: false },
+        { text: "Returns early with Err (converting the type), or unwraps the Ok value", correct: true },
+        { text: "Throws the error as an exception", correct: false }
+      ],
+      feedback: "Early return on error, unwrap on success — plus automatic error-type conversion through the <code>From</code> trait. That conversion is what makes one function cleanly bubble up several different underlying error types."
+    }
+  },
+  {
+    title: "panic! vs. RuntimeException",
+    eyebrow: "Error Handling · 2",
+    blocks: [
+      { html: "<p>Rust splits the error world in two. <strong>Recoverable</strong> problems (file not found, bad input) are <code>Result</code>. <strong>Bugs</strong> (index out of bounds, violated invariant) are <code>panic!</code> — the moral equivalent of an unchecked <code>RuntimeException</code>, except panics are not meant to be caught as control flow.</p>" },
+      { compare: {
+        javaLabel: "Java — one mechanism for both",
+        java: `<span class="cm">// Bugs and expected failures both</span>
+<span class="cm">// travel as exceptions:</span>
+list.<span class="fn">get</span>(<span class="nm">99</span>);
+<span class="cm">// → IndexOutOfBoundsException</span>
+
+<span class="ty">Integer</span>.<span class="fn">parseInt</span>(<span class="st">"abc"</span>);
+<span class="cm">// → NumberFormatException —</span>
+<span class="cm">// unchecked, though bad input is</span>
+<span class="cm">// entirely expected!</span>
+
+<span class="kw">try</span> { ... } <span class="kw">catch</span> (<span class="ty">RuntimeException</span> e) {
+    <span class="cm">// catching bugs as control flow —</span>
+    <span class="cm">// common, and commonly regretted</span>
+}`,
+        rustLabel: "Rust — two distinct channels",
+        rust: `<span class="cm">// Bug → panic:</span>
+<span class="kw">let</span> v = <span class="fn">vec!</span>[<span class="nm">1</span>, <span class="nm">2</span>, <span class="nm">3</span>];
+v[<span class="nm">99</span>];               <span class="cm">// panics — it's a bug</span>
+v.<span class="fn">get</span>(<span class="nm">99</span>);           <span class="cm">// Option — your choice</span>
+
+<span class="cm">// Expected failure → Result:</span>
+<span class="kw">let</span> n: <span class="ty">Result</span>&lt;<span class="ty">i32</span>, _&gt; = <span class="st">"abc"</span>.<span class="fn">parse</span>();
+<span class="cm">// Bad input is in the type. Handle it.</span>
+
+<span class="cm">// Explicit panics for invariants:</span>
+<span class="fn">assert!</span>(balance >= <span class="nm">0</span>, <span class="st">"negative balance"</span>);
+<span class="fn">unreachable!</span>(<span class="st">"state machine hole"</span>);`
+      }},
+      { heading: "unwrap & expect: deliberate panic points" },
+      { compare: {
+        javaLabel: "Java — Optional.get()",
+        java: `<span class="ty">Optional</span>&lt;<span class="ty">User</span>&gt; u = <span class="fn">findUser</span>(id);
+
+u.<span class="fn">get</span>();
+<span class="cm">// NoSuchElementException if empty.</span>
+<span class="cm">// IDEs warn: "call isPresent first"</span>
+
+u.<span class="fn">orElseThrow</span>(() ->
+    <span class="kw">new</span> <span class="ty">IllegalStateException</span>(
+        <span class="st">"user must exist here"</span>));`,
+        rustLabel: "Rust — unwrap / expect",
+        rust: `<span class="kw">let</span> u = <span class="fn">find_user</span>(id);
+
+u.<span class="fn">unwrap</span>();
+<span class="cm">// panics if None — fine in tests</span>
+<span class="cm">// and prototypes, a smell in libraries</span>
+
+u.<span class="fn">expect</span>(<span class="st">"user must exist: \
+  validated by middleware"</span>);
+<span class="cm">// same, but the panic message explains</span>
+<span class="cm">// WHY you believed it was safe</span>
+
+<span class="cm">// Production code prefers:</span>
+<span class="kw">let</span> <span class="ty">Some</span>(u) = <span class="fn">find_user</span>(id) <span class="kw">else</span> {
+    <span class="kw">return</span> <span class="ty">Err</span>(<span class="ty">ApiError</span>::<span class="ty">NotFound</span>);
+};`
+      }},
+      { callout: { type: "danger", label: "Don't catch panics", text: "<code>std::panic::catch_unwind</code> exists (thread pools and FFI boundaries use it), but it is not try/catch — panics may be configured to <code>abort</code> the process entirely, and not all panics are catchable. The design intent: <code>Result</code> for anything you'd handle, panics only for \"this program is broken.\"" } },
+      { callout: { type: "insight", label: "Key Insight", text: "In Java, whether an exception is \"expected\" is a judgment call at the catch site. In Rust, the API author decides: fallible-by-design returns <code>Result</code>, invariant violations panic. Signatures become honest — you can't be surprised by an undocumented runtime exception three layers down." } }
+    ],
+    quiz: {
+      q: "A network request to a flaky external API might fail. What should the Rust function return?",
+      opts: [
+        { text: "Panic on failure — the caller can catch_unwind", correct: false },
+        { text: "Result<Response, Error> — expected failures are values", correct: true },
+        { text: "Option<Response> — None on any failure", correct: false },
+        { text: "Return a default Response and log the error", correct: false }
+      ],
+      feedback: "Network failure is expected, recoverable behavior → <code>Result</code> with a meaningful error type. (<code>Option</code> loses the <em>why</em>.) Panics are reserved for bugs — states your program should never reach."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 5. CONCURRENCY ═══════════════════════ */
+{
+  name: "Concurrency",
+  topics: [
+  {
+    title: "Fearless Concurrency",
+    eyebrow: "Concurrency · 1",
+    blocks: [
+      { html: "<p>Java provides threads, <code>synchronized</code>, <code>volatile</code>, and <code>java.util.concurrent</code> — but data races remain possible, as runtime bugs that are notoriously hard to reproduce. Rust makes data races a <strong>compile-time error</strong> via the <code>Send</code> and <code>Sync</code> marker traits.</p>" },
+      { compare: {
+        javaLabel: "Java — runtime race risk",
+        java: `<span class="kw">int</span>[] counter = {<span class="nm">0</span>};
+<span class="ty">Thread</span> t1 = <span class="kw">new</span> <span class="ty">Thread</span>(() ->
+    counter[<span class="nm">0</span>]++  <span class="cm">// data race!</span>
+);
+<span class="ty">Thread</span> t2 = <span class="kw">new</span> <span class="ty">Thread</span>(() ->
+    counter[<span class="nm">0</span>]++  <span class="cm">// data race!</span>
+);
+t1.<span class="fn">start</span>(); t2.<span class="fn">start</span>();
+<span class="cm">// Compiles. Runs. Loses updates</span>
+<span class="cm">// sometimes. Good luck debugging.</span>`,
+        rustLabel: "Rust — the race won't compile",
+        rust: `<span class="kw">use</span> std::sync::{<span class="ty">Arc</span>, <span class="ty">Mutex</span>};
+<span class="kw">use</span> std::thread;
+
+<span class="kw">let</span> counter = <span class="ty">Arc</span>::<span class="fn">new</span>(<span class="ty">Mutex</span>::<span class="fn">new</span>(<span class="nm">0</span>));
+
+<span class="kw">let</span> handles: <span class="ty">Vec</span>&lt;_&gt; = (<span class="nm">0</span>..<span class="nm">2</span>).<span class="fn">map</span>(|_| {
+    <span class="kw">let</span> c = <span class="ty">Arc</span>::<span class="fn">clone</span>(<span class="op">&</span>counter);
+    thread::<span class="fn">spawn</span>(<span class="kw">move</span> || {
+        <span class="op">*</span>c.<span class="fn">lock</span>().<span class="fn">unwrap</span>() += <span class="nm">1</span>;
+    })
+}).<span class="fn">collect</span>();
+
+<span class="kw">for</span> h <span class="kw">in</span> handles { h.<span class="fn">join</span>().<span class="fn">unwrap</span>(); }
+<span class="cm">// Try sharing a bare i32 mutably</span>
+<span class="cm">// instead → compile error. Always.</span>`
+      }},
+      { heading: "Rc vs Arc: paying only when threads are involved" },
+      { compare: {
+        javaLabel: "Java — everything is thread-safe-ish",
+        java: `<span class="cm">// Every object reference can cross</span>
+<span class="cm">// threads. So every object header,</span>
+<span class="cm">// every GC design, every JMM rule</span>
+<span class="cm">// must account for it — you pay for</span>
+<span class="cm">// thread-safety machinery even in</span>
+<span class="cm">// single-threaded code.</span>`,
+        rustLabel: "Rust — two reference-counted types",
+        rust: `<span class="kw">use</span> std::rc::<span class="ty">Rc</span>;    <span class="cm">// single-thread, fast</span>
+<span class="kw">use</span> std::sync::<span class="ty">Arc</span>; <span class="cm">// atomic, cross-thread</span>
+
+<span class="kw">let</span> local = <span class="ty">Rc</span>::<span class="fn">new</span>(data);
+<span class="cm">// thread::spawn(move || use(local));</span>
+<span class="cm">// ↑ compile error: Rc is !Send.</span>
+<span class="cm">// The compiler MAKES you upgrade to Arc</span>
+<span class="cm">// when (and only when) you share.</span>
+
+<span class="kw">let</span> shared = <span class="ty">Arc</span>::<span class="fn">new</span>(data);
+<span class="cm">// Send + Sync → crosses threads freely</span>`
+      }},
+      { callout: { type: "insight", label: "Key Insight", text: "<code>Send</code> = the type may be <em>moved</em> to another thread. <code>Sync</code> = <code>&amp;T</code> may be <em>shared</em> across threads. The compiler derives them automatically and refuses code that violates them — <code>Rc</code>, <code>RefCell</code>, and raw pointers simply can't leak across a <code>thread::spawn</code> boundary." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "<code>Arc&lt;Mutex&lt;T&gt;&gt;</code> ≈ a final field holding data guarded by <code>synchronized</code> — but where Java's JMM rules live in a spec chapter developers rarely read, Rust's rules live in the type checker. \"Is this class thread-safe?\" stops being a Javadoc question." } }
+    ],
+    quiz: {
+      q: "What do the Send and Sync traits represent in Rust?",
+      opts: [
+        { text: "Network serialization interfaces", correct: false },
+        { text: "Thread-safety properties encoded in the type system", correct: true },
+        { text: "Message-passing channel implementations", correct: false },
+        { text: "Async/await markers for futures", correct: false }
+      ],
+      feedback: "<code>Send</code>: safe to move to another thread. <code>Sync</code>: safe to share by reference. Auto-derived, and violations are compile errors — this is what \"fearless concurrency\" concretely means."
+    }
+  },
+  {
+    title: "Channels vs. BlockingQueue",
+    eyebrow: "Concurrency · 2",
+    blocks: [
+      { html: "<p>The producer–consumer pattern you build with <code>LinkedBlockingQueue</code> in Java is a language-level citizen in Rust: <strong>channels</strong> (<code>std::sync::mpsc</code> — multi-producer, single-consumer). The twist: sending a value through a channel <strong>moves ownership</strong> to the receiver — the sender provably cannot touch it afterward.</p>" },
+      { compare: {
+        javaLabel: "Java — BlockingQueue",
+        java: `<span class="kw">var</span> queue =
+  <span class="kw">new</span> <span class="ty">LinkedBlockingQueue</span>&lt;<span class="ty">Task</span>&gt;();
+
+<span class="cm">// Producer</span>
+<span class="kw">new</span> <span class="ty">Thread</span>(() -> {
+    <span class="ty">Task</span> t = <span class="kw">new</span> <span class="ty">Task</span>(<span class="st">"job-1"</span>);
+    queue.<span class="fn">put</span>(t);
+    t.<span class="fn">setName</span>(<span class="st">"oops"</span>);
+    <span class="cm">// ↑ still mutable AFTER handoff —</span>
+    <span class="cm">// consumer sees the mutation. Race!</span>
+}).<span class="fn">start</span>();
+
+<span class="cm">// Consumer</span>
+<span class="kw">while</span> (<span class="kw">true</span>) {
+    <span class="ty">Task</span> t = queue.<span class="fn">take</span>(); <span class="cm">// blocks</span>
+    <span class="fn">process</span>(t);
+}`,
+        rustLabel: "Rust — mpsc channel",
+        rust: `<span class="kw">use</span> std::sync::mpsc;
+<span class="kw">use</span> std::thread;
+
+<span class="kw">let</span> (tx, rx) = mpsc::<span class="fn">channel</span>();
+
+<span class="cm">// Producer</span>
+thread::<span class="fn">spawn</span>(<span class="kw">move</span> || {
+    <span class="kw">let</span> t = <span class="ty">Task</span>::<span class="fn">new</span>(<span class="st">"job-1"</span>);
+    tx.<span class="fn">send</span>(t).<span class="fn">unwrap</span>();
+    <span class="cm">// t.set_name("oops");</span>
+    <span class="cm">// ↑ compile error: t was MOVED.</span>
+    <span class="cm">// Post-handoff mutation impossible.</span>
+});
+
+<span class="cm">// Consumer — channel is an iterator:</span>
+<span class="kw">for</span> t <span class="kw">in</span> rx {   <span class="cm">// blocks per recv,</span>
+    <span class="fn">process</span>(t);  <span class="cm">// ends when tx drops</span>
+}`
+      }},
+      { heading: "Fan-in: multiple producers" },
+      { compare: {
+        javaLabel: "Java — share the queue reference",
+        java: `<span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < <span class="nm">4</span>; i++) {
+    <span class="kw">final int</span> id = i;
+    <span class="kw">new</span> <span class="ty">Thread</span>(() ->
+        queue.<span class="fn">put</span>(<span class="fn">work</span>(id))
+    ).<span class="fn">start</span>();
+}
+<span class="cm">// Shutdown: poison pills or</span>
+<span class="cm">// interrupt handling — manual</span>`,
+        rustLabel: "Rust — clone the sender",
+        rust: `<span class="kw">for</span> id <span class="kw">in</span> <span class="nm">0</span>..<span class="nm">4</span> {
+    <span class="kw">let</span> tx = tx.<span class="fn">clone</span>();  <span class="cm">// mp = multi-producer</span>
+    thread::<span class="fn">spawn</span>(<span class="kw">move</span> || {
+        tx.<span class="fn">send</span>(<span class="fn">work</span>(id)).<span class="fn">unwrap</span>();
+    });
+}
+<span class="fn">drop</span>(tx); <span class="cm">// drop the original</span>
+
+<span class="kw">for</span> result <span class="kw">in</span> rx { ... }
+<span class="cm">// Loop ends automatically when the</span>
+<span class="cm">// last sender drops — shutdown is</span>
+<span class="cm">// just ownership again. No poison pills.</span>`
+      }},
+      { callout: { type: "tip", label: "Beyond std", text: "<code>mpsc::sync_channel(n)</code> gives you a bounded queue with backpressure (≈ <code>ArrayBlockingQueue</code>). The <code>crossbeam</code> crate adds MPMC channels and a <code>select!</code> over multiple channels; <code>tokio::sync::mpsc</code> is the async flavor." } },
+      { callout: { type: "insight", label: "Key Insight", text: "\"Do not communicate by sharing memory; share memory by communicating.\" In Java this is a discipline; in Rust the type system enforces the handoff — once sent, gone. An entire class of publish-then-mutate bugs disappears." } }
+    ],
+    quiz: {
+      q: "After tx.send(task) succeeds, what can the sending thread do with task?",
+      opts: [
+        { text: "Keep mutating it — the receiver gets a copy", correct: false },
+        { text: "Read it but not mutate it", correct: false },
+        { text: "Nothing — ownership moved to the channel; using it is a compile error", correct: true },
+        { text: "Use it until the receiver calls recv()", correct: false }
+      ],
+      feedback: "<code>send</code> takes the value by move. The Java bug where a producer keeps a reference and mutates an object already handed to a consumer cannot be written in safe Rust."
+    }
+  },
+  {
+    title: "Async: CompletableFuture vs. async/await",
+    eyebrow: "Concurrency · 3",
+    blocks: [
+      { html: "<p>Java's async story spans <code>CompletableFuture</code> chains and, since Java 21, <strong>virtual threads</strong> (write blocking code, get async scale). Rust chose <code>async</code>/<code>await</code>: functions compile into state machines, driven by an executor. Two things surprise Java developers most: Rust futures are <strong>lazy</strong>, and the standard library ships <strong>no runtime</strong> — you pick one (usually <code>tokio</code>).</p>" },
+      { compare: {
+        javaLabel: "Java — CompletableFuture chains",
+        java: `<span class="ty">CompletableFuture</span>&lt;<span class="ty">String</span>&gt; f =
+  <span class="ty">CompletableFuture</span>
+    .<span class="fn">supplyAsync</span>(() -> <span class="fn">fetchUser</span>(id))
+    .<span class="fn">thenApply</span>(u -> u.<span class="fn">name</span>())
+    .<span class="fn">thenCompose</span>(n -> <span class="fn">fetchScore</span>(n))
+    .<span class="fn">exceptionally</span>(e -> <span class="st">"fallback"</span>);
+
+<span class="cm">// supplyAsync starts running NOW,</span>
+<span class="cm">// eagerly, on ForkJoinPool.commonPool</span>
+
+<span class="ty">String</span> result = f.<span class="fn">join</span>();`,
+        rustLabel: "Rust — async fn + .await",
+        rust: `<span class="kw">async fn</span> <span class="fn">get_score</span>(id: <span class="ty">u64</span>)
+    -> <span class="ty">Result</span>&lt;<span class="ty">String</span>, <span class="ty">ApiError</span>&gt; {
+    <span class="kw">let</span> user = <span class="fn">fetch_user</span>(id).<span class="kw">await</span><span class="op">?</span>;
+    <span class="kw">let</span> score = <span class="fn">fetch_score</span>(<span class="op">&</span>user.name).<span class="kw">await</span><span class="op">?</span>;
+    <span class="ty">Ok</span>(score)
+}
+<span class="cm">// Reads like blocking code; ? still</span>
+<span class="cm">// works. Compiles to a state machine.</span>
+
+#[tokio::main]
+<span class="kw">async fn</span> <span class="fn">main</span>() {
+    <span class="kw">let</span> f = <span class="fn">get_score</span>(<span class="nm">42</span>);  <span class="cm">// does NOTHING yet</span>
+    <span class="kw">let</span> r = f.<span class="kw">await</span>;        <span class="cm">// runs HERE</span>
+}`
+      }},
+      { heading: "Running things in parallel" },
+      { compare: {
+        javaLabel: "Java — allOf / virtual threads",
+        java: `<span class="cm">// CompletableFuture combinators:</span>
+<span class="kw">var</span> a = <span class="fn">fetchA</span>(); <span class="kw">var</span> b = <span class="fn">fetchB</span>();
+<span class="ty">CompletableFuture</span>.<span class="fn">allOf</span>(a, b).<span class="fn">join</span>();
+
+<span class="cm">// Or Java 21 virtual threads —</span>
+<span class="cm">// blocking style, cheap threads:</span>
+<span class="kw">try</span> (<span class="kw">var</span> scope =
+  <span class="kw">new</span> <span class="ty">StructuredTaskScope</span>.<span class="ty">ShutdownOnFailure</span>()) {
+    <span class="kw">var</span> fa = scope.<span class="fn">fork</span>(() -> <span class="fn">fetchA</span>());
+    <span class="kw">var</span> fb = scope.<span class="fn">fork</span>(() -> <span class="fn">fetchB</span>());
+    scope.<span class="fn">join</span>().<span class="fn">throwIfFailed</span>();
+}`,
+        rustLabel: "Rust — join! and spawned tasks",
+        rust: `<span class="cm">// Concurrent await on one task:</span>
+<span class="kw">let</span> (a, b) = tokio::<span class="fn">join!</span>(
+    <span class="fn">fetch_a</span>(),
+    <span class="fn">fetch_b</span>(),
+);
+
+<span class="cm">// True parallelism — spawn tasks</span>
+<span class="cm">// (like virtual threads: cheap, many):</span>
+<span class="kw">let</span> ha = tokio::<span class="fn">spawn</span>(<span class="fn">fetch_a</span>());
+<span class="kw">let</span> hb = tokio::<span class="fn">spawn</span>(<span class="fn">fetch_b</span>());
+<span class="kw">let</span> (a, b) = (ha.<span class="kw">await</span><span class="op">?</span>, hb.<span class="kw">await</span><span class="op">?</span>);
+
+<span class="cm">// Racing / timeouts:</span>
+tokio::time::<span class="fn">timeout</span>(
+    <span class="ty">Duration</span>::<span class="fn">from_secs</span>(<span class="nm">2</span>), <span class="fn">fetch_a</span>()
+).<span class="kw">await</span><span class="op">?</span>;`
+      }},
+      { callout: { type: "danger", label: "Two gotchas", text: "1) Futures do nothing until awaited — calling <code>get_score(42)</code> without <code>.await</code> is a no-op (the compiler warns). Java's <code>supplyAsync</code> starts immediately. 2) Never call blocking I/O inside async code — it stalls the executor's worker threads. Use async libraries (<code>reqwest</code>, <code>tokio::fs</code>) or <code>spawn_blocking</code>. Same pitfall as blocking inside a <code>ForkJoinPool</code>." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "A tokio task ≈ a virtual thread: extremely cheap, scheduled onto a small pool of carrier/worker threads. The difference: Java 21 lets old blocking code scale unchanged, while Rust makes suspension points visible as <code>.await</code> — more explicit, and no runtime is bundled with the language." } }
+    ],
+    quiz: {
+      q: "What happens when you call an async fn in Rust but never .await it?",
+      opts: [
+        { text: "It runs eagerly in the background, like supplyAsync", correct: false },
+        { text: "Nothing — futures are lazy and only run when awaited/polled", correct: true },
+        { text: "It blocks the current thread until done", correct: false },
+        { text: "It panics at runtime", correct: false }
+      ],
+      feedback: "Calling an <code>async fn</code> just constructs a state machine value; execution happens only when it's awaited (or spawned onto a runtime). This is the sharpest contrast with <code>CompletableFuture.supplyAsync</code>, which starts work immediately."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 6. LIFETIMES ═══════════════════════ */
+{
+  name: "Lifetimes",
+  topics: [
+  {
+    title: "Lifetime Annotations",
+    eyebrow: "Lifetimes · 1",
+    blocks: [
+      { html: "<p>Lifetimes are Rust's most intimidating feature — but here's the secret: <strong>lifetimes already exist in your Java code</strong>. The GC tracks them at runtime. Rust makes them visible and checks them at compile time. Annotations like <code>'a</code> are labels connecting the lifetime of an output reference to its inputs.</p>" },
+      { compare: {
+        javaLabel: "Java — implicit lifetimes",
+        java: `<span class="kw">class</span> <span class="ty">Cache</span> {
+    <span class="kw">private</span> <span class="ty">String</span>[] data;
+
+    <span class="cm">// Returns reference into data[]</span>
+    <span class="ty">String</span> <span class="fn">get</span>(<span class="kw">int</span> i) {
+        <span class="kw">return</span> data[i]; <span class="cm">// implicit lifetime</span>
+    }
+    <span class="cm">// GC keeps data alive as long as</span>
+    <span class="cm">// anyone holds the returned ref.</span>
+    <span class="cm">// Invisible — and unfree: this is</span>
+    <span class="cm">// exactly what GC tracking costs.</span>
+}`,
+        rustLabel: "Rust — explicit lifetime labels",
+        rust: `<span class="kw">struct</span> <span class="ty">Cache</span>&lt;<span class="lt">'a</span>&gt; {
+    data: <span class="op">&</span><span class="lt">'a</span> [<span class="ty">String</span>],
+}
+
+<span class="kw">impl</span>&lt;<span class="lt">'a</span>&gt; <span class="ty">Cache</span>&lt;<span class="lt">'a</span>&gt; {
+    <span class="kw">fn</span> <span class="fn">get</span>(<span class="op">&</span><span class="kw">self</span>, i: <span class="ty">usize</span>) -> <span class="op">&</span><span class="lt">'a</span> <span class="ty">String</span> {
+        <span class="op">&</span><span class="kw">self</span>.data[i]
+    }
+    <span class="cm">// 'a: output lives as long as data.</span>
+    <span class="cm">// Verified at compile time. Zero cost.</span>
+}`
+      }},
+      { heading: "The bug lifetimes prevent" },
+      { compare: {
+        javaLabel: "Java — GC saves you (at a cost)",
+        java: `<span class="ty">String</span> <span class="fn">firstWord</span>() {
+    <span class="ty">String</span> local = <span class="fn">buildSentence</span>();
+    <span class="kw">return</span> local.<span class="fn">split</span>(<span class="st">" "</span>)[<span class="nm">0</span>];
+    <span class="cm">// Safe: GC keeps the split result</span>
+    <span class="cm">// alive after the method returns.</span>
+    <span class="cm">// Price: heap allocation + GC work</span>
+}`,
+        rustLabel: "Rust — dangling ref caught statically",
+        rust: `<span class="kw">fn</span> <span class="fn">first_word</span>() -> <span class="op">&</span><span class="ty">str</span> {        <span class="cm">// ✗</span>
+    <span class="kw">let</span> local = <span class="fn">build_sentence</span>();
+    local.<span class="fn">split</span>(<span class="st">' '</span>).<span class="fn">next</span>().<span class="fn">unwrap</span>()
+}   <span class="cm">// error[E0106]: local dies here —</span>
+    <span class="cm">// returned &str would dangle</span>
+
+<span class="cm">// Fix 1 — return owned data:</span>
+<span class="kw">fn</span> <span class="fn">first_word</span>() -> <span class="ty">String</span> { ... }
+
+<span class="cm">// Fix 2 — borrow FROM the caller:</span>
+<span class="kw">fn</span> <span class="fn">first_word</span>(s: <span class="op">&</span><span class="ty">str</span>) -> <span class="op">&</span><span class="ty">str</span> {
+    s.<span class="fn">split</span>(<span class="st">' '</span>).<span class="fn">next</span>().<span class="fn">unwrap</span>()
+}   <span class="cm">// output borrows from input — elided</span>
+    <span class="cm">// lifetime, no annotation needed</span>`
+      }},
+      { heading: "When annotations become necessary" },
+      { compare: {
+        javaLabel: "Java — question can't be asked",
+        java: `<span class="ty">String</span> <span class="fn">longest</span>(<span class="ty">String</span> a, <span class="ty">String</span> b) {
+    <span class="kw">return</span> a.<span class="fn">length</span>() > b.<span class="fn">length</span>()
+        ? a : b;
+}
+<span class="cm">// "How long is the returned reference</span>
+<span class="cm">// valid?" — Java never needs to ask;</span>
+<span class="cm">// the GC will figure it out at runtime</span>`,
+        rustLabel: "Rust — 'a ties the knot",
+        rust: `<span class="kw">fn</span> <span class="fn">longest</span>&lt;<span class="lt">'a</span>&gt;(a: <span class="op">&</span><span class="lt">'a</span> <span class="ty">str</span>, b: <span class="op">&</span><span class="lt">'a</span> <span class="ty">str</span>)
+    -> <span class="op">&</span><span class="lt">'a</span> <span class="ty">str</span> {
+    <span class="kw">if</span> a.<span class="fn">len</span>() > b.<span class="fn">len</span>() { a } <span class="kw">else</span> { b }
+}
+<span class="cm">// Two inputs, output could borrow from</span>
+<span class="cm">// either → compiler can't guess, so 'a</span>
+<span class="cm">// declares: "result lives no longer</span>
+<span class="cm">// than the shorter-lived input."</span>
+<span class="cm">// Callers are checked against that.</span>`
+      }},
+      { callout: { type: "tip", label: "Good news", text: "Most functions never need annotations thanks to <em>lifetime elision</em>: one input reference → output borrows from it; methods → output borrows from <code>&amp;self</code>. Explicit <code>'a</code> shows up mainly for multi-input returns and structs that hold references." } },
+      { callout: { type: "concept", label: "Java Mental Model", text: "The GC answers \"is this reference still valid?\" at runtime, continuously, with memory and CPU overhead. Lifetimes answer it once, at compile time, for free. The annotation isn't extra work the language invented — it's the cost the GC was silently paying, moved to where you can see it." } }
+    ],
+    quiz: {
+      q: "What is the primary purpose of lifetime annotations in Rust?",
+      opts: [
+        { text: "To specify how long a thread should run", correct: false },
+        { text: "To tell the compiler how long references are valid — preventing dangling pointers", correct: true },
+        { text: "To control garbage collection timing", correct: false },
+        { text: "To annotate async execution duration", correct: false }
+      ],
+      feedback: "Lifetimes prevent use-after-free at compile time by relating output references to input references. Java performs the equivalent check at runtime via the GC; Rust performs it once, statically, with zero runtime cost."
+    }
+  }
+  ]
+},
+
+/* ═══════════════════════ 7. ECOSYSTEM ═══════════════════════ */
+{
+  name: "Ecosystem",
+  topics: [
+  {
+    title: "Cargo, Crates & Tooling",
+    eyebrow: "Ecosystem · 1",
+    blocks: [
+      { html: "<p>Coming from Maven/Gradle, <strong>Cargo</strong> will feel familiar — but more opinionated, and with far more built in. Packages are <strong>crates</strong>, the registry is crates.io, and building, testing, docs, formatting, and linting are all one tool.</p>" },
+      { compare: {
+        javaLabel: "Java toolchain",
+        java: `<span class="cm"># Build tools (pick one, configure lots)</span>
+mvn package
+gradle build
+
+<span class="cm"># Testing (JUnit dependency)</span>
+mvn test
+
+<span class="cm"># Formatting → Spotless/Checkstyle plugin</span>
+<span class="cm"># Linting    → SpotBugs/PMD/ErrorProne</span>
+<span class="cm"># Docs:</span>
+javadoc -d docs src/`,
+        rustLabel: "Cargo — one tool",
+        rust: `cargo build --release
+cargo test          <span class="cm"># built in</span>
+cargo fmt           <span class="cm"># built in</span>
+cargo clippy        <span class="cm"># built-in linter</span>
+cargo doc --open    <span class="cm"># built in</span>
+cargo add serde     <span class="cm"># edit manifest for you</span>
+cargo bench         <span class="cm"># benchmarks</span>`
+      }},
+      { heading: "The manifest" },
+      { compare: {
+        javaLabel: "Maven — pom.xml",
+        java: `&lt;dependencies&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+    &lt;version&gt;2.17.0&lt;/version&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;`,
+        rustLabel: "Cargo — Cargo.toml",
+        rust: `[package]
+name = <span class="st">"my-app"</span>
+edition = <span class="st">"2021"</span>
+
+[dependencies]
+serde = { version = <span class="st">"1"</span>, features = [<span class="st">"derive"</span>] }
+tokio = { version = <span class="st">"1"</span>, features = [<span class="st">"full"</span>] }
+<span class="cm"># Cargo.lock pins exact versions —</span>
+<span class="cm"># reproducible builds by default</span>`
+      }},
+      { callout: { type: "tip", label: "Crates to know", text: "<code>serde</code> ≈ Jackson · <code>tokio</code> + <code>reqwest</code> ≈ Netty + HttpClient · <code>rayon</code> ≈ parallel streams · <code>clap</code> ≈ picocli · <code>tracing</code> ≈ SLF4J/Logback · <code>sqlx</code>/<code>diesel</code> ≈ JDBC/JPA territory · <code>axum</code>/<code>actix-web</code> ≈ Spring WebMVC (minus the DI container)." } },
+      { callout: { type: "insight", label: "Key Insight", text: "Cargo workspaces ≈ Maven multi-module builds, with one lockfile and shared target dir. And <code>rustup</code> manages toolchain versions per project (via <code>rust-toolchain.toml</code>) — the role SDKMAN/jenv play for JDKs, but standard." } }
+    ],
+    quiz: {
+      q: "Which Cargo command runs your project's tests?",
+      opts: [
+        { text: "cargo run --test", correct: false },
+        { text: "cargo build test", correct: false },
+        { text: "cargo test", correct: true },
+        { text: "cargo check --tests", correct: false }
+      ],
+      feedback: "<code>cargo test</code> runs unit tests, integration tests, and doc tests — no external framework needed."
+    }
+  },
+  {
+    title: "Testing: JUnit vs. Built-in",
+    eyebrow: "Ecosystem · 2",
+    blocks: [
+      { html: "<p>Rust ships testing in the language and toolchain. The culture shock for Java developers: <strong>unit tests live in the same file</strong> as the code they test, in a <code>#[cfg(test)]</code> module that's compiled out of release builds — and code examples in your docs are executed as tests.</p>" },
+      { compare: {
+        javaLabel: "Java — JUnit 5",
+        java: `<span class="cm">// src/test/java/CalcTest.java —</span>
+<span class="cm">// separate tree, parallel packages</span>
+<span class="kw">import</span> org.junit.jupiter.api.<span class="ty">Test</span>;
+<span class="kw">import static</span> org.junit.jupiter.api
+    .<span class="ty">Assertions</span>.*;
+
+<span class="kw">class</span> <span class="ty">CalcTest</span> {
+    <span class="nm">@Test</span>
+    <span class="kw">void</span> <span class="fn">adds</span>() {
+        <span class="fn">assertEquals</span>(<span class="nm">4</span>, <span class="ty">Calc</span>.<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>));
+    }
+
+    <span class="nm">@Test</span>
+    <span class="kw">void</span> <span class="fn">rejectsNegatives</span>() {
+        <span class="fn">assertThrows</span>(
+            <span class="ty">IllegalArgumentException</span>.<span class="kw">class</span>,
+            () -> <span class="ty">Calc</span>.<span class="fn">sqrt</span>(-<span class="nm">1</span>));
+    }
+}`,
+        rustLabel: "Rust — same file, #[cfg(test)]",
+        rust: `<span class="cm">// src/calc.rs — code and tests together</span>
+<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
+
+#[cfg(test)]
+<span class="kw">mod</span> tests {
+    <span class="kw">use super</span>::*;   <span class="cm">// sees private items too!</span>
+
+    #[test]
+    <span class="kw">fn</span> <span class="fn">adds</span>() {
+        <span class="fn">assert_eq!</span>(<span class="fn">add</span>(<span class="nm">2</span>, <span class="nm">2</span>), <span class="nm">4</span>);
+    }
+
+    #[test]
+    #[should_panic(expected = <span class="st">"negative"</span>)]
+    <span class="kw">fn</span> <span class="fn">rejects_negatives</span>() {
+        <span class="fn">sqrt</span>(-<span class="nm">1.0</span>);
+    }
+}`
+      }},
+      { heading: "Doc tests: documentation that can't rot" },
+      { compare: {
+        javaLabel: "Java — Javadoc examples",
+        java: `<span class="cm">/**
+ * Adds two numbers.
+ *
+ * &lt;pre&gt;{@code
+ * int r = Calc.add(2, 2); // 4
+ * }&lt;/pre&gt;
+ */</span>
+<span class="cm">// Nothing compiles or runs this.</span>
+<span class="cm">// Refactor the API → example silently</span>
+<span class="cm">// becomes a lie.</span>`,
+        rustLabel: "Rust — examples run in CI",
+        rust: `<span class="cm">/// Adds two numbers.</span>
+<span class="cm">///</span>
+<span class="cm">/// # Examples</span>
+<span class="cm">/// &#96;&#96;&#96;</span>
+<span class="cm">/// assert_eq!(my_crate::add(2, 2), 4);</span>
+<span class="cm">/// &#96;&#96;&#96;</span>
+<span class="kw">pub fn</span> <span class="fn">add</span>(a: <span class="ty">i32</span>, b: <span class="ty">i32</span>) -> <span class="ty">i32</span> { a + b }
+
+<span class="cm">// cargo test compiles and RUNS every</span>
+<span class="cm">// doc example. Out-of-date docs fail</span>
+<span class="cm">// the build.</span>`
+      }},
+      { callout: { type: "tip", label: "Integration tests", text: "The <code>tests/</code> directory at the crate root holds integration tests — each file compiles as a separate crate that uses your library only through its public API, like a Java test module depending on your published JAR. Tests run in parallel by default." } },
+      { callout: { type: "insight", label: "Key Insight", text: "In-file tests can exercise private functions directly (the <code>tests</code> module is inside the same scope) — the problem Java solves with package-private access and matching test package names disappears. And because <code>#[cfg(test)]</code> strips the module from normal builds, there's zero cost in production binaries." } }
+    ],
+    quiz: {
+      q: "Where do idiomatic Rust unit tests live?",
+      opts: [
+        { text: "In src/test/rust, mirroring the source tree", correct: false },
+        { text: "In the same file as the code, inside a #[cfg(test)] module", correct: true },
+        { text: "In a separate test crate published alongside", correct: false },
+        { text: "Rust has no unit tests, only integration tests", correct: false }
+      ],
+      feedback: "Same file, <code>#[cfg(test)] mod tests</code> — with access to private items and zero footprint in release builds. Integration tests (public-API only) go in <code>tests/</code>, and doc examples run as tests too."
+    }
+  }
+  ]
+}
+];
+
+/* ──────────────────────── Engine ──────────────────────── */
+let currentCat = 0;
+let currentTopic = 0;
+let done = new Set();
+
+function flatIndex(cat, topic) {
+  let idx = 0;
+  for (let i = 0; i < cat; i++) idx += CATEGORIES[i].topics.length;
+  return idx + topic;
+}
+function totalTopics() {
+  return CATEGORIES.reduce((s, c) => s + c.topics.length, 0);
+}
+
+function renderTopNav() {
+  const nav = document.getElementById('topNav');
+  nav.innerHTML = CATEGORIES.map((c, i) =>
+    '<button class="' + (i === currentCat ? 'active' : '') + '" onclick="switchCategory(' + i + ')">' + c.name + '</button>'
+  ).join('');
+}
+
+function renderSidebar() {
+  const el = document.getElementById('sidebarTopics');
+  const cat = CATEGORIES[currentCat];
+  el.innerHTML = cat.topics.map((t, i) => {
+    const fi = flatIndex(currentCat, i);
+    let cls = 'topic-btn';
+    if (i === currentTopic) cls += ' active';
+    if (done.has(fi)) cls += ' done';
+    return '<button class="' + cls + '" onclick="goTopic(' + i + ')"><span class="dot"></span>' + t.title + '</button>';
+  }).join('');
+}
+
+function renderProgress() {
+  const total = totalTopics();
+  const pct = Math.round((done.size / total) * 100);
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progText').textContent = done.size + ' / ' + total;
+}
+
+function renderBlock(b) {
+  if (b.html) return b.html;
+  if (b.heading) return '<h3 class="block-heading">' + b.heading + '</h3>';
+  if (b.table) {
+    return '<table class="map-table"><thead><tr>' +
+      b.table.headers.map(h => '<th>' + h + '</th>').join('') +
+      '</tr></thead><tbody>' +
+      b.table.rows.map(r => '<tr>' + r.map(c => '<td>' + c + '</td>').join('') + '</tr>').join('') +
+      '</tbody></table>';
+  }
+  if (b.compare) {
+    return '<div class="code-compare">' +
+      '<div class="code-panel"><div class="code-panel-header java">☕ ' + b.compare.javaLabel + '</div><pre>' + b.compare.java + '</pre></div>' +
+      '<div class="code-panel"><div class="code-panel-header rust">🦀 ' + b.compare.rustLabel + '</div><pre>' + b.compare.rust + '</pre></div>' +
+      '</div>';
+  }
+  if (b.callout) {
+    return '<div class="callout ' + b.callout.type + '"><strong>' + b.callout.label + '</strong>' + b.callout.text + '</div>';
+  }
+  return '';
+}
+
+function renderLesson() {
+  const cat = CATEGORIES[currentCat];
+  const topic = cat.topics[currentTopic];
+  const content = document.getElementById('contentPane');
+
+  const blocksHtml = topic.blocks.map(renderBlock).join('');
+
+  const quiz = topic.quiz;
+  const quizHtml = quiz ?
+    '<div class="quiz" id="quiz"><div class="quiz-tag">Checkpoint</div>' +
+    '<div class="quiz-q">' + quiz.q + '</div>' +
+    '<div class="quiz-options">' +
+    quiz.opts.map((o, i) => '<button class="quiz-opt" onclick="answerQuiz(' + i + ')">' + o.text + '</button>').join('') +
+    '</div><div class="quiz-feedback" id="quizFeedback">' + quiz.feedback + '</div></div>'
+    : '';
+
+  const isFirst = currentTopic === 0 && currentCat === 0;
+  const isLast = currentTopic === cat.topics.length - 1;
+  const isLastCat = currentCat === CATEGORIES.length - 1;
+
+  content.innerHTML =
+    '<div class="lesson visible">' +
+      '<div class="lesson-eyebrow">' + topic.eyebrow + '</div>' +
+      '<h1 class="lesson-title">' + topic.title + '</h1>' +
+      '<div class="lesson-body">' + blocksHtml + quizHtml + '</div>' +
+      '<div class="lesson-nav">' +
+        '<button class="nav-btn" onclick="prevTopic()" ' + (isFirst ? 'disabled' : '') + '>← Previous</button>' +
+        '<button class="nav-btn primary" onclick="nextTopic()">' +
+          (isLast && isLastCat ? '🎉 Complete!' : isLast ? 'Next Chapter →' : 'Next →') +
+        '</button>' +
+      '</div>' +
+    '</div>';
+
+  renderTopNav();
+  renderSidebar();
+  renderProgress();
+}
+
+function answerQuiz(idx) {
+  const quiz = CATEGORIES[currentCat].topics[currentTopic].quiz;
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  if (quiz.opts[idx].correct) {
+    opts[idx].classList.add('correct');
+    done.add(flatIndex(currentCat, currentTopic));
+    renderSidebar();
+    renderProgress();
+  } else {
+    opts[idx].classList.add('wrong');
+    quiz.opts.forEach((o, i) => { if (o.correct) opts[i].classList.add('correct'); });
+  }
+  document.getElementById('quizFeedback').classList.add('show');
+}
+
+function goTopic(i) {
+  currentTopic = i;
+  renderLesson();
+  window.scrollTo(0, 0);
+}
+
+function prevTopic() {
+  if (currentTopic > 0) {
+    currentTopic--;
+  } else if (currentCat > 0) {
+    currentCat--;
+    currentTopic = CATEGORIES[currentCat].topics.length - 1;
+  }
+  renderLesson();
+  window.scrollTo(0, 0);
+}
+
+function nextTopic() {
+  const cat = CATEGORIES[currentCat];
+  done.add(flatIndex(currentCat, currentTopic));
+  if (currentTopic < cat.topics.length - 1) {
+    currentTopic++;
+  } else if (currentCat < CATEGORIES.length - 1) {
+    currentCat++;
+    currentTopic = 0;
+  }
+  renderLesson();
+  window.scrollTo(0, 0);
+}
+
+function switchCategory(idx) {
+  currentCat = idx;
+  currentTopic = 0;
+  renderLesson();
+  window.scrollTo(0, 0);
+}
+
+renderLesson();
+</script>
+</body>
+</html>
