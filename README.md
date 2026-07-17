@@ -2,6 +2,9 @@
 
 An interactive, single-file learning app that teaches Rust through the lens of Java — side-by-side code comparisons, Java→Rust mapping tables, and checkpoint quizzes.
 
+## APP
+https://oalagtash.github.io/rust-for-java-developers/ 
+
 **No build step, no dependencies.** Just open `index.html` in a browser.
 
 ## What's inside
@@ -37,6 +40,8 @@ python3 -m http.server 8000
 1. Push this repo to GitHub
 2. **Settings → Pages → Source: Deploy from a branch → `main` / root**
 3. Your app is live at `https://<username>.github.io/<repo>/`
+
+https://oalagtash.github.io/rust-for-java-developers/ 
 
 ## License
 
