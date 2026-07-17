@@ -20,7 +20,7 @@ You're an experienced **Java developer** (or Kotlin/JVM developer) who wants to 
 
 ## What's inside
 
-**7 chapters · 19 lessons**, each with multiple annotated comparisons:
+**7 chapters · 20 lessons**, each with multiple annotated comparisons:
 
 | Chapter | Topics |
 |---|---|
@@ -30,7 +30,7 @@ You're an experienced **Java developer** (or Kotlin/JVM developer) who wants to 
 | **Error Handling** | `Result<T, E>` & the `?` operator vs checked exceptions, `panic!` vs `RuntimeException` |
 | **Concurrency** | Fearless concurrency with `Send`/`Sync`, `Arc<Mutex<T>>` vs `synchronized`, channels vs `BlockingQueue`, async/await vs `CompletableFuture` & Java 21 virtual threads |
 | **Lifetimes** | Lifetime annotations explained as compile-time GC, elision rules, the `longest<'a>` pattern |
-| **Ecosystem** | Cargo vs Maven/Gradle, crate equivalents (serde ≈ Jackson, tokio ≈ Netty, rayon ≈ parallel streams), built-in testing vs JUnit, doc tests |
+| **Ecosystem** | Cargo vs Maven/Gradle, crate equivalents (serde ≈ Jackson, tokio ≈ Netty, rayon ≈ parallel streams), built-in testing vs JUnit, doc tests, compile times & the dev loop (`cargo check`, workspaces), debugging & remote debugging (gdbserver vs JDWP) |
 
 Features: progress tracking, per-lesson quizzes, mapping tables, responsive layout, dark theme. Plain HTML/CSS/JS — no frameworks, works offline.
 
@@ -59,6 +59,9 @@ The syntax is the easy part. The real shift is ownership and borrowing — which
 
 **Do I need to install Rust to use this?**
 No. The lessons are self-contained comparisons. When you're ready to code, install via [rustup.rs](https://rustup.rs) and the Ecosystem chapter maps Cargo onto Maven/Gradle.
+
+**Are Rust's slow compile times and "hard debugging" real problems?**
+Compile times are Rust's most-cited pain point — but the daily loop runs on `cargo check` and rust-analyzer (seconds), not full builds. Debugging is a myth with a true core: breakpoints, stepping, and even remote debugging (gdbserver, the native equivalent of JDWP) all work — what's missing are VM conveniences like HotSwap and JFR. The Compile Times & Debugging lesson covers the honest tradeoffs.
 
 **Does this cover modern Java?**
 Yes — comparisons use records, sealed interfaces, pattern-matching `switch`, `Optional`, Streams, `CompletableFuture`, and Java 21 virtual threads where relevant.
